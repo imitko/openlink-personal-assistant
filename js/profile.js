@@ -18,7 +18,7 @@ async function fetchProfile(url) {
             console.log(`Error ${resp.status} - ${resp.statusText}`); // Log error
         }
     } catch (e) {
-        console.error('Request failed', e); // Log exception
+        console.log('Request failed', e); // Log exception
         return null; // Return null on error
     }
 }
@@ -89,7 +89,7 @@ async function loadProfile(webId) {
             name: name ? name.value : null // Extract name value
         };
     } catch (e) {
-        console.error('Error', e); // Log error to console
+        console.log('Error', e); // Log error to console
         return null; // Return null on error
     }
 }
