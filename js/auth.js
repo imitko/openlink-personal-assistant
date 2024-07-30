@@ -102,8 +102,6 @@ async function updateLoginState() {
     if (loggedIn) {
         console.log("updatging login state")
         let params = new URLSearchParams(wsUrl.search);
-        let resume = localStorage.getItem('openlinksw.com:opal:copy:share_id');
-        localStorage.removeItem('openlinksw.com:opal:copy:share_id');
         params.append('sessionId',session.info.sessionId);
         wsUrl.search = params.toString();
 

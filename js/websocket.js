@@ -2,7 +2,7 @@
 onOpen = function(event) {
     chatAuthenticate().then(() => {
         if (!apiKeyRequired && currentThread) {
-            loadConversation(currentThread);
+            checkResumeThread().then(() => { loadConversation(currentThread); });
         }
     });
 };

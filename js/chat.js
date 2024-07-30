@@ -95,11 +95,44 @@ function displayThreadsInDropdown(threads) {
     // Reverse the chat topics array
     const reversedThreads = [...threads].reverse();
 
+    if (threads.length && !currentThread) {
+        currentThread = threads[0].id;
+    }
+
     // Append chat topics to the dropdown
     reversedThreads.forEach(thread => {
         addThreadsDropdownItem(thread.id, thread.title); // Add each thread to the dropdown
     });
 }
+
+async function checkResumeThread() {
+    let resume = localStorage.getItem('openlinksw.com:opal:copy:share_id');
+    let url = new URL('/chat/api/resumeThread', httpBase);
+    let params = new URLSearchParams(url.search);
+    params.append('share_id', resume);
+    params.append('apiKey', apiKey ? apiKey : '');
+    url.search = params.toString();
+    if (!resume) {
+        return;
+    }
+    $('.loader').css('display', 'block'); // Show loader
+    try {
+        const resp = await authClient.fetch (url.toString());
+        if (resp.ok) {
+            let thr = await resp.json();
+            // TODO: add thread to the list of the existing threads
+            currentThread = thr.thread_id;
+        } else {
+            throw new Error(resp.statusText);
+        }
+    } catch (e) {
+        showFailureNotice('Resuming thread failed: ' + e);
+    } finally {
+        localStorage.removeItem('openlinksw.com:opal:copy:share_id');
+        $('.loader').css('display', 'none'); // Hide loader
+    }
+}
+
 
 /**
  * Loads a conversation based on the provided chat ID.
