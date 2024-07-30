@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <script src="//code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+        <link href="//cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+        <script src="//cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css" integrity="sha512-hasIneQUHlh06VNBe7f6ZcHmeRTLIaQWFd43YriJ0UND19bvYRauxthDg8E4eVNPm9bRUhr5JGeqH7FRFXQu5g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="shortcut icon" href="#">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js" integrity="sha512-rdhY3cbXURo13l/WU9VlaRyaIYeJ/KBakckXIvJNAQde8DgpOmE+eZf7ha4vdqVjTtwQt69bD2wH2LXob/LB7Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="//cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js" integrity="sha256-hNyljag6giCsjv/yKmxK8/VeHzvMDvc5u8AzmRvm1BI=" crossorigin="anonymous"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="//cdn.jsdelivr.net/npm/rdflib@2.2.32/dist/rdflib.min.js"></script>
+        <script src="version.js"></script>
+        <script src="lib/solid-client-authn.bundle.js" integrity="sha512-xCsU0QV+pkzlr9dAZIJT22XBI4HTmumAb6Y6zwNiauzMS6djYzY1vbXWCZKbdWsqJIqg86VM795REQfcJcql2Q=="></script>
+        <link href="css/chat.css" rel="stylesheet"/>
+        <link href="css/assistants.css" rel="stylesheet"/>
+        <!-- JS Files -->
+        <script src="js/ui.js"></script>
+        <script src="js/auth.js"></script>
+        <script src="js/chat.js"></script>
+        <script src="js/profile.js"></script>
+        <script src="js/websocket.js"></script>
+        <script src="js/storage.js"></script>
+        <script src="js/files.js"></script>
+        <script src="js/main.js"></script>
+    </head>
+    <body>
+        <div class="grid-container">            
+            <div class="assistant-configuration">
+                <div class="assistants-dropdown">
+                    <div class="assistants-dropdown-btn" id="assistantsDropdown">
+                        <span class="assistants-dropdown-text">Select an Assistant</span>
+                        <span class="expand-vertical btn-icon">
+                            <img src="svg/expand-vertical.svg"/>
+                        </span>
+                    </div>
+                    <div class="assistants-dropdown-menu hidden"></div>
+                </div>          
+                <div class="model-configuration-fields">
+
+                    <div class="assistant-label">
+                        <label for="name" class="field-label">Name</label>
+                        <input type="text" id="assistant-name" class="field-input" placeholder="Enter a name for the assistant">
+                        <div class="assistant-id field-id"></div>
+                    </div>
+            
+                    <div class="field">
+                        <label for="instructions" class="field-label">Instructions</label>
+                        <textarea id="instructions" class="field-input" placeholder="Assistants instructions"></textarea>
+                    </div>
+            
+                    <div class="field">
+                        <label for="model" class="field-label">Model</label>
+                        <div class="models-dropdown">
+                            <div class="models-dropdown-btn" id="modelDropdown">
+                                <span class="models-dropdown-text"></span>
+                                <span class="expand-vertical btn-icon">
+                                    <img src="svg/expand-vertical.svg"/>
+                                </span>
+                            </div>
+                            <div class="models-dropdown-menu hidden"></div>
+                        </div>
+                    </div>                    
+            
+                    <!-- <div class="tools-section">
+                        <div class="section-header">
+                            <h3 class="section-title">TOOLS</h3>
+                            <button class="files-btn">+ Files</button>
+                        </div>
+                        <div class="tool-item">
+                            <label class="switch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                            <span>File search</span>
+                        </div>
+                        <div class="tool-item">
+                            <label class="switch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                            <span>Code interpreter</span>
+                        </div>
+                    </div> -->
+            
+                    <div class="functions-section">
+                        <div class="section-header">
+                            <h3 class="section-title">FUNCTIONS</h3>
+                            <button class="functions-btn">+ Functions</button>
+                        </div>
+                        <div class="functions-list"></div>
+                    </div>
+            
+                    <div class="model-config-section">
+                        <h3 class="section-title">MODEL CONFIGURATION</h3>
+                        <!-- <div class="field">
+                            <label for="response-format" class="field-label">Response format</label>
+                            <label class="switch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                            <span>JSON object</span>
+                        </div> -->
+
+                        <div class="field" id="temperature-field">
+                            <label for="temperature_in" data-toggle="tooltip" data-placement="top" class="field-label" 
+                                data-bs-original-title="Temperature is a parameter that controls the “creativity” or randomness of the text generated by GPT. A higher temperature (e.g., 0.7) results in more diverse and creative output, while a lower temperature (e.g., 0.2) makes the output more deterministic and focused.">
+                                Temperature
+                            </label>
+                            <input type="text" id="temperature" class="form-control params" value="1">
+                        </div>
+                        <div class="field">
+                            <input type="range" class="form-range" id="temperature_in" min="0" step="0.01" max="2" value="0.2">
+                        </div> 
+
+                        <div class="field" id="top-p-field">
+                            <label for="top_p_in" data-toggle="tooltip" data-placement="top" class="field-label" 
+                                data-bs-original-title="Top_p sampling is an alternative to temperature sampling. Instead of considering all possible tokens, GPT considers only a subset of tokens (the nucleus) whose cumulative probability mass adds up to a certain threshold.">
+                                Top p
+                            </label>
+                            <input type="text" id="top_p" class="form-control params" value="0.5">
+                        </div>
+                        <div class="field">
+                            <input type="range" class="form-range" id="top_p_in" min="0" step="0.01" max="1" value="1">
+                        </div> 
+
+                        <div class="field" id="max-tokens-field">
+                            <label for="max_tokens_in" data-toggle="tooltip" data-placement="top" class="field-label" 
+                                data-bs-original-title="Maximum number of tokens before to stop generation, infinite is limited by API limits, certain models as gpt-4-vision always needs this setting to be specified.">
+                                Max Tokens
+                            </label>
+                            <input type="text" id="max_tokens" class="form-control params" value="300">
+                        </div>
+                        <div class="field">
+                            <input type="range" class="form-range" id="max_tokens_in" min="0" step="1" max="4096" value="4096">
+                        </div> 
+
+                        <div class="field" id="max-threads-field">
+                            <label for="max_threads_in" data-toggle="tooltip" data-placement="top" class="field-label" 
+                                data-bs-original-title="Maximum number of session entries visible in log list.">
+                                Max Threads
+                            </label>
+                            <input type="text" id="max_threads" class="form-control params" value="100">
+                        </div>
+                        <div class="field">
+                            <input type="range" class="form-range" id="max_threads_in" min="20" step="10" max="100" value="100">
+                        </div> 
+                    </div>
+
+                    <div class="session-configuration">
+                        <h3 class="section-title">SESSION CONFIGURATION</h3>
+                        <div class="field" id="animation-speed-field">
+                            <label for="animation_speed_in" data-toggle="tooltip" data-placement="top" class="field-label" 
+                                data-bs-original-title="Animation speed for session replay.">
+                                Animation Speed
+                            </label>
+                        </div>
+                        <div class="field">
+                            <input type="range" class="form-range" id="animation_speed_in" min="0" step="10" max="500" value="0">
+                        </div> 
+                    </div>
+            
+                    <!-- <div class="api-version-section">
+                        <h3 class="section-title">API VERSION</h3>
+                        <div class="api-version">
+                            <span>Latest</span>
+                            <button class="switch-version-button">Switch to v1</button>
+                        </div>
+                        <div class="api-timestamp">Updated 5/14, 2:41 PM</div>
+                    </div> -->
+                    <div class="assistant-buttons">
+                        <button class="assistant-btn" id="save-assistant-button" title="Save">Save</button>
+                        <button class="assistant-btn" id="delete-assistant">
+                            <img src="svg/trash.svg" alt="Trash Icon" class="assistant-icon trash">
+                        </button>
+                        <button class="assistant-btn" id="clone-assistant-button">
+                            <img src="svg/clipboard.svg" alt="Copy Icon" class="assistant-icon copy">
+                            Clone
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-window">
+                <button class="btn" id="close-assistant-configuration-btn">
+                    <span data-toggle="tooltip" data-placement="right" title="Close Assistant Configuration">
+                        <img src="svg/expand-left.svg"/>
+                    </span>
+                </button>
+                <button class="btn" id="open-assistant-configuration-btn">
+                    <span data-toggle="tooltip" data-placement="right" title="Open Assistant Configuration">
+                        <img src="svg/expand-right.svg"/>
+                    </span>
+                </button>
+                <div class="top-content-wrapper">
+                    <div class="threads-dropdown">
+                        <div class="threads-dropdown-btn">
+                            <span class="threads-dropdown-text">Threads</span>
+                            <span class="expand-vertical btn-icon">
+                                <img src="svg/expand-vertical.svg"/>
+                            </span>
+                        </div>
+                        <div class="threads-dropdown-menu">
+                            <!-- Dynamic content will be injected here to show a user's threads -->
+                        </div>
+                    </div> 
+                    <div class="top-menu-buttons">
+                        <button class="top-menu-button new-thread" title="New Thread">New Thread</button>
+                        <button class="top-menu-button" id="new-assistant" title="New Assistant">New Assistant</button>
+                    </div>                      
+                    <div class="chat-window-buttons">
+                        <!-- <button class="icon-button" title="About"><img src="svg/book.svg" alt="About"></button> -->
+                        <button class="icon-button" title="Share"><img src="svg/export.svg" alt="Share"></button>
+                        <button class="icon-button" id="import-thread-button" title="Import Thread"><img src="svg/import.svg" alt="Import Thread"></button>
+                        <button class="icon-button api-key" title="Api Key"><img src="svg/vertical-key.svg" alt="Api Key"></button>
+                        <button class="top-menu-button login-button" title="Login">Login</button>
+                        <a class="uid hidden" data-placement="top" target="_blank" href="" title="">
+                            <img id="uid icon" src="svg/user.svg">
+                        </a>
+                        <button class="top-menu-button logout-button hidden" title="Logout">Logout</button>
+                    </div>
+                </div>
+                <div class="chat-messages">
+                    <!-- Dynamicall filled with chat messages -->
+                </div>              
+            </div>
+            <div class="user-input-wrapper">
+                <div class="continue-button-group">
+                    <button id="continue-button" class="button continue-button">Resume Chat</button>
+                </div>
+                <div class="textbox-container" id="user-input-textbox">
+                    <input type="file" style="display:none;" multiple="" id="fs-upload">
+                    <div class="assistants-suggestions-dropdown hidden"></div>
+                    <div class="loader"></div>  
+                    <div class="uploaded-files-container"></div>
+                    <div class="user-input-container">
+                        <textarea id="user-input" placeholder="Type your question here (use ⇧⏎ for line break)..."></textarea>
+                        <input type="file" id="local-storage-thread-input" accept=".json" style="display: none;">
+                    </div>
+                    <div class="buttons-container">
+                        <div class="left-buttons">
+                            <button class="icon-button" id="file-upload-button" title="Upload File"><img src="svg/paperclip-2.svg" alt="File Search" style="transform: scaleX(-1);"></button>
+                        </div>
+                        <div class="right-buttons">
+                            <div class="run-button-group">
+                                <button class="run-button" id="run-submit">
+                                    <img src="svg/caret-right-circle.svg" alt="Caret Right Circle" class="icon">
+                                    Run
+                                </button>
+                                <div class="separator"></div>
+                                <button class="dropdown-button" id="run-dropdown">
+                                    <img src="svg/down-arrow.svg" alt="Dropdown Arrow" class="dropdown-icon">
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+                <div class="footer">
+                    Personal Assistant Interface - Version 1.0.0 - @jidehen
+                </div> 
+            </div>         
+        </div>
+         <!-- Modals -->
+        <div id="api-key-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Please enter your OpenAI API key</h2>
+                <div class="input-group">
+                    <label for="api-key-input">OpenAI API Key</label>
+                    <input type="text" id="api-key-input" placeholder="Enter your OpenAI API key">
+                </div>
+                <div class="button-group api-modal-buttons">
+                    <button id="save-api-key" class="button save-button">Save</button>
+                    <button id="remove-api-key" class="button remove-button">Remove</button>
+                </div>
+            </div>
+        </div> 
+
+        <div id="login-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Authentication</h2>
+                <p>Please authenticate to continue</p>
+                <div class="button-group login-modal-buttons">
+                    <button id="login-button" class="button login-button">Log In</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="share-thread-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Share Thread Messages</h2>
+                <p>
+                    The personal storage folder URI will be used to store the current chat session. 
+                    Make sure you have access to it with the currently logged-in account. 
+                    If it is not automatically detected, then your profile does not support pim:storage or it is not accessible.
+                </p>
+                <div class="input-group">
+                    <label for="personal-storage-export-input">Personal Storage</label>
+                    <input type="text" id="personal-storage-export-input" placeholder="Personal storage URI">
+                </div>
+                <div class="button-group share-thread-modal-buttons">
+                    <button id="export-chat" class="button export-chat-button">Export to Personal Storage</button>
+                    <button id="share-link" class="button share-link-button">Get Link</button>
+                    <button id="copy-messages" class="button copy-messages-button">Copy All Messages</button>
+                </div>
+                <div class="share-animation-speed">
+                    <div class="field" id="animation-speed-field">
+                        <label for="share_animation_speed_in" data-toggle="tooltip" data-placement="top" class="field-label" 
+                            data-bs-original-title="Animation speed for share link session replay.">
+                            Share Animation Speed
+                        </label>
+                    </div>
+                    <div class="field">
+                        <input type="range" class="form-range" id="share_animation_speed_in" min="0" step="10" max="500" value="0">
+                    </div> 
+                </div>
+            </div>
+        </div>
+
+        <div id="personal-storage-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Personal Storage (WebDAV)</h2>
+                <div class="input-group">
+                    <label for="personal-storage-import-input">Personal Storage</label>
+                    <div class="personal-storage-import-input-field">
+                        <input type="text" id="personal-storage-import-input" placeholder="Personal storage URI">
+                        <button id="search-storage" class="button search-button">Search</button>
+                    </div>
+                </div>
+                <div class="personal-storage-threads">
+                    <!-- Dynamic content will be added here when threads are found -->
+                </div>
+            </div>
+        </div>
+
+        <div id="import-thread-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Import Thread</h2>
+                <p>
+                    Choose thread import source
+                </p>
+                <div class="button-group import-thread-modal-buttons">
+                    <button class="button import-thread-buttom" id="personal-storage">Personal Storage (WebDAV)</button>
+                    <button class="button import-thread-button" id="local-storage">Local Storage</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="function-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Add function</h2>
+                <p>The model will intelligently decide to call functions based on the input it receives from the user.</p>
+                <div class="input-group">
+                    <textarea id="function-input"></textarea>
+                </div>
+                <div class="button-group">
+                    <button class="button save-button">Save</button>
+                </div>
+            </div>
+        </div>     
+
+        <div id="attach-files-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Attach files to file search</h2>
+                <div id="drop_zone" class="drag-drop-area">
+                    <img src="svg/images.svg" alt="Upload Icon">
+                    <p>Drag your files here or <a href="#" id="file-upload-link">click to upload</a></p>
+                    <p>Information in attached files will be available to this thread.</p>
+                    <input type="file" id="file-input" style="display: none;">
+                </div>
+                <div id="uploaded-files">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Size</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Uploaded files will be displayed here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="button-group">
+                    <button class="button done-button">Done</button>
+                </div>
+            </div>
+        </div>
+
+        <div class='notice'>
+            <div id="msg"></div>
+        </div>
+    </body>
+</html>

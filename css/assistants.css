@@ -1,0 +1,450 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-size: 14px;
+  }
+  
+:root {
+    --top-menu-left-padding: 50px;
+    --top-menu-top-margin: 10px;
+    --top-menu-height: 60px;
+    --filter-white: brightness(0) invert(1);
+    --border-color: #ECECF1;
+    --grey-header-color: #353740;
+    --grey-btn-color: #ececf1;
+    --grey-hover-btn: #d1d1dc;
+    --assistants-window-margin: 30px;
+}
+
+.assistants-wrapper {
+    display: grid;
+    grid-template-columns: min-content 1fr;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* ============================== Assistant List ============================== */
+.assistants-list-container {
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+}
+
+.assistants-list {
+    width: 100%;
+    height: 100%;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    border-right: 1px solid #ececf1;
+}
+
+.assistant-item {
+    padding: 10px; /* Add padding around the assistant-content */
+}
+
+.assistant-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px; /* Internal padding for the content */
+    border-top: 1px solid #ececf1;
+    transition: background-color 0.3s;
+}
+
+.assistant-item:first-child .assistant-content {
+    border-top: none; /* Remove top border for the first item */
+}
+
+.assistant-item:hover .assistant-content {
+    background-color: #f0f0f0;
+}
+
+.assistant-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.assistant-name {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.assistant-id {
+    font-size: 12px;
+    color: #999;
+}
+
+.assistant-time {
+    font-size: 12px;
+    color: #999;
+}
+
+/* ============================== Assistant Configuration Wrapper ============================== */
+.assistant-configuration {
+    position: relative;
+    width: 375px;
+    height: 100%; /* Ensure container takes up full height */
+    padding: var(--chat-window-top-margin) var(--assistants-window-margin);
+    overflow-y: scroll;
+    background: var(--body-color);
+    grid-row: 1 / span 2;
+    border-right: 1px solid var(--border-color);
+    transition: var(--tran-05);
+    background: #F9F9F9;
+    grid-column: 1;
+}
+
+/* ============================== Assistants Drowdown Button ============================== */
+
+.assistants-dropdown {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.assistants-dropdown-btn {
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    background: #F9F9F9;
+    cursor: pointer;
+    text-align: left;
+    overflow: hidden;
+    white-space: nowrap;
+    border-radius: 10px;
+    padding: 10px 10px 10px 0;
+}
+
+.assistants-dropdown-btn:hover {
+    background: var(--grey-btn-color);
+}
+
+.assistants-dropdown-btn img {
+    width: 14px;
+    height: 14px;
+    margin-left: 5px;
+}
+
+.assistants-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 35px;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background-color: var(--body-color);
+    z-index: 1;
+    max-height: 200px;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.1);
+    font-size: 14px;
+    overflow-y: auto;
+}
+
+.assistants-dropdown-item {
+    padding: 10px;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.assistants-dropdown-item.create-assistant {
+    font-weight: 550;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 2;
+}
+
+.assistants-dropdown-separator {
+    height: 1px;
+    background-color: #e0e0e0;
+}
+
+.assistants-dropdown-item:hover {
+    background-color: #f1f1f1;
+}
+
+.assistants-dropdown-text {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 700;
+}
+
+/* ============================== Assistant Configuration ============================== */
+
+.assistant-id {
+    font-size: 14px;
+    color: #888;
+}
+
+/* ============================== Model Configuration Fields ============================== */
+.model-configuration-fields {
+    width: 100%;
+    height: 100%;
+}
+
+.field {
+    margin-bottom: 20px;
+}
+
+.field-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.field-input {
+    width: 100%;
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+.field-id {
+    font-size: 12px;
+    color: #999;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+.tools-section, .functions-section, .model-config-section, .api-version-section {
+    margin-bottom: 20px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--grey-header-color);
+    opacity: 0.7;
+    margin-bottom: 10px;
+}
+
+.tool-item, .function-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    border-radius: 34px;
+    transition: 0.4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 12px;
+    width: 12px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.4s;
+}
+
+input:checked + .slider {
+    background-color: #4caf50;
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+.files-btn, .functions-btn, .switch-version-button {
+    background-color: #ececf1;
+    color: var(--grey-header-color);
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-left: auto;
+    font-size: 12px;
+}
+
+.files-btn:hover, .functions-btn:hover, .switch-version-button:hover {
+    background-color: var(--grey-hover-btn);
+}
+
+.api-version {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.api-timestamp {
+    font-size: 12px;
+    color: #888;
+    margin-top: 10px;
+}
+
+.range-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.field#temperature-field, .field#top-p-field, .field#max-tokens-field, .field#max-threads-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px; /* Add margin to separate the elements */
+}
+
+.form-control {
+    width: 50px;
+    text-align: center;
+    padding: 5px;
+}
+
+.form-range {
+    width: 100%;
+}
+
+.function-item {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.function-item:hover {
+    background-color: #f0f0f0;
+}
+
+.function-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+}
+
+.function-checkbox {
+    margin-left: auto;
+}
+
+/* ============================== Model Dropdown ============================== */
+
+.models-dropdown {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.models-dropdown-btn {
+    width: 100%;
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    background: white;
+}
+
+.models-dropdown-btn img {
+    width: 14px;
+    height: 14px;
+}
+
+.models-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 40px;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background-color: var(--body-color);
+    z-index: 1;
+    max-height: 200px;
+    overflow-y: auto;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.1);
+    font-size: 14px;
+}
+
+.models-dropdown-item {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.models-dropdown-item:hover {
+    background-color: #f1f1f1;
+}
+
+.models-dropdown-text {
+    flex-grow: 1;
+}
+
+.assistants-suggestions-dropdown {
+    display: none;
+    position: absolute;
+    /* top: -185px;
+    left: 0px; */
+    width: 200px;
+    height: min-content;
+    max-height: 200px;
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.assistants-suggestions-item {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.assistants-suggestions-item:hover {
+    background-color: #ccc;
+}
+
+.assistant-btn {
+    background: #F4F4F4;
+    border: none;
+    border-radius: 10px;
+    padding: 8px;
+    cursor: pointer;
+    margin: 0 5px;
+}
