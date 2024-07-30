@@ -273,6 +273,7 @@ async function showConversation(items) {
 
     // Scroll to the bottom of the chat
     $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
+    $('.threads-dropdown-text').text(currentThread); // update thread dropdown id
     $('.loader').css('display', 'none'); // Hide loader
 }
 
