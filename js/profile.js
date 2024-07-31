@@ -1,5 +1,7 @@
 /**
  * Fetches profile data from the given URL.
+ * @param {string} url - The URL to fetch the profile data from.
+ * @returns {Object|null} - The profile data and content type, or null if an error occurs.
  */
 async function fetchProfile(url) {
     const options = { 
@@ -25,6 +27,8 @@ async function fetchProfile(url) {
 
 /**
  * Loads the profile data for the given WebID.
+ * @param {string} webId - The WebID to load the profile for.
+ * @returns {Object|null} - The profile information including storage URL, Solid ID status, WebDAV support, and name.
  */
 async function loadProfile(webId) {
     const uriObj = new URL(webId);
@@ -94,10 +98,15 @@ async function loadProfile(webId) {
     }
 }
 
-async function isDavSupported (url) {
+/**
+ * Checks if WebDAV is supported at the given URL.
+ * @param {string} url - The URL to check for WebDAV support.
+ * @returns {boolean} - True if WebDAV is supported, false otherwise.
+ */
+async function isDavSupported(url) {
     if (!url) return false;
     rc = await authClient.fetch(url, { method: 'OPTIONS'}).
-        then ((resp) => {
+        then((resp) => {
             if (resp.status != 204) {
                 return false;
             }

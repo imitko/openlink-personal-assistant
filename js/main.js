@@ -1,25 +1,13 @@
 // Required
 // TODO: Enable audio
 // TODO: Image upload + Enable high image resolution + Scale images setting
-// reconnect and continue session
-// need to add back login challenge
-
-// UI/UX Improvements
 // TODO: Add session replay (session replay speed parameter as well) - set animation when getting permalink - set animation speed in sidebarv
-
-// Code Maintenance
 // TODO: Comment/clean code and upload to github
-// TODO: Add debugging/logging for function calls
-
-// Interface Improvements
-// TODO: Code blocks should also show on user inputs
 
 // Bonus
 // TODO: Add token statistic logging
 // TODO: add default modules/functions
 // TODO: assistant creation file upload
-// TODO: Make input area resizable
-// TODO: Message level permalinks do not resolve to the specified message
 // TODO: Fix file upload overflow + File upload images depending on file type
 // TODO: Highlight text as blue when copied
 

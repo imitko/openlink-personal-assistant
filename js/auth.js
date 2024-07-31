@@ -1,3 +1,6 @@
+/**
+ * Initializes the authentication process.
+ */
 function initAuthentication() {
     // Authentication Handler
     let url = new URL(window.location.href);
@@ -7,10 +10,7 @@ function initAuthentication() {
         url.hash = '';
     }
 
-    console.log("restore: ", restore)
-
     if (null != sharedSession) {
-        console.log("share case hit: ", sharedSession)
         loadShare(sharedSession);
         $('#user-input-textbox').hide();
         $('.continue-button-group').show();
@@ -20,7 +20,6 @@ function initAuthentication() {
 
     authClient.handleIncomingRedirect({url: url.toString(), restorePreviousSession: restore}).then ((info) => {
         loggedIn = info?.isLoggedIn ? info.isLoggedIn : false;
-        console.log("info: ", info)
         $('.login-button').toggleClass('hidden', loggedIn);
         $('.logout-button').toggleClass('hidden', !loggedIn);
         updateLoginState();
@@ -111,7 +110,6 @@ async function chatAuthenticate() {
  */
 async function updateLoginState() {
     if (loggedIn) {
-        console.log("updatging login state")
         let params = new URLSearchParams(wsUrl.search);
         params.append('sessionId',session.info.sessionId);
         wsUrl.search = params.toString();
@@ -156,6 +154,12 @@ async function updateLoginState() {
     }
 }
 
+/**
+ * Checks if the API key is present and valid.
+ * If not logged in, shows the login modal.
+ * If the API key is required but missing, shows the API key modal.
+ * @returns {boolean} - True if the API key is valid, false otherwise.
+ */
 function checkApiKey() {
     if (!loggedIn) {
         $("#login-modal").show();

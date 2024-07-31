@@ -800,7 +800,8 @@ div.nano_start, div.nano_end {
   padding: 16px;
   position: absolute;
   z-index: 1000;
-  right: 26%;
+  left: 50%;
+  transform: translateX(-50%);
   top: 10px;
   min-width: 200px;
 }
@@ -815,7 +816,8 @@ div.nano_start, div.nano_end {
   padding: 16px;
   position: absolute;
   z-index: 1000;
-  right: 26%;
+  left: 50%;
+  transform: translateX(-50%);
   top: 10px;
   min-width: 200px;
 }

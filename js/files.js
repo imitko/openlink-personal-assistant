@@ -2,6 +2,9 @@
 
 let selectedFiles = [];
 
+/**
+ * Initializes file upload and drag-and-drop functionalities.
+ */
 function initFiles() {
     initFileUpload();
     initFileDragAndDrop();
@@ -10,7 +13,7 @@ function initFiles() {
 /**
  * Determines the MIME type of a file based on its extension.
  * @param {string} filename - The name of the file.
- * @returns {string} - The MIME type corresponding to the file extension.
+ * @returns {Object} - The MIME type and icon corresponding to the file extension.
  */
 function getSupportedFileType(filename) {
     const ext2mime = {
@@ -179,7 +182,7 @@ function initFileDragAndDrop() {
 
 /**
  * Handles the file input and uploads the file.
- * @param {File} file - The file to be uploaded.
+ * @param {FileList} files - The list of files to be uploaded.
  */
 async function handleFileInput(files) {
     for (let file of files) {
@@ -327,4 +330,3 @@ function formatFileSize(size) {
     }
     return `${formattedSize.toFixed(2)} ${units[unitIndex]}`;
 }
-

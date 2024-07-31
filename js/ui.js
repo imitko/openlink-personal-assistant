@@ -2,6 +2,10 @@
  * Initializes the user interface.
  */
 function initUI() {
+    if (!loggedIn && !sharedSession) {
+        $("#login-modal").show();
+    }
+
     $('.model-configuration-fields').hide();
 
     document.getElementById('delete-assistant').addEventListener('click', function() {
@@ -127,6 +131,7 @@ function initThreadsDropdown() {
         // Logic associated with clicking a threads-dropdown-item
         if (!checkApiKey()) return;
 
+        console.log("case hitttt")
         $('.threads-dropdown-text').text($(this).text());
         currentThread = $(this).text();
         loadConversation($(this).data('chat-id'));
@@ -301,6 +306,9 @@ function initPersonalStorageModal() {
     });
 }
 
+/**
+ * Initializes the functions modal functionality.
+ */
 function initFunctionsModal() {
     $('.functions-btn').on('click', function() {
         $('#function-modal').show();
@@ -335,6 +343,9 @@ function initFunctionsModal() {
     $('#function-input').attr('placeholder', placeholderText.trim());
 }
 
+/**
+ * Initializes the temperature slider and input field.
+ */
 function initTemperature() {
     const minTemperature = parseFloat($('#temperature_in').attr('min'));
     const maxTemperature = parseFloat($('#temperature_in').attr('max'));
@@ -366,16 +377,19 @@ function initTemperature() {
     });
 }
 
+/**
+ * Initializes the top_p slider and input field.
+ */
 function initTopP() {
     const minTopP = parseFloat($('#top_p_in').attr('min'));
     const maxTopP = parseFloat($('#top_p_in').attr('max'));
-    // Function to track the temperature value
+    // Function to track the top_p value
     const trackTopP = (value) => {
         top_p = parseFloat(value);
     };
 
     // Function to set the value of the slider and input field
-    const setTemperature = (value) => {
+    const setTopP = (value) => {
         $('#top_p').val(value);
         $('#top_p_in').val(value);
     };
@@ -397,10 +411,13 @@ function initTopP() {
     });
 }
 
+/**
+ * Initializes the max_tokens slider and input field.
+ */
 function initMaxTokens() {
     const minMaxTokens = parseFloat($('#max_tokens_in').attr('min'));
     const maxMaxTokens = parseFloat($('#max_tokens_in').attr('max'));
-    // Function to track the temperature value
+    // Function to track the max_tokens value
     const trackMaxTokens = (value) => {
         max_tokens = parseInt(value, 10);
     };
@@ -428,10 +445,13 @@ function initMaxTokens() {
     });
 }
 
+/**
+ * Initializes the max_threads slider and input field.
+ */
 function initMaxThreads() {
     const minMaxthreads = parseFloat($('#max_threads_in').attr('min'));
     const maxMaxthreads = parseFloat($('#max_threads_in').attr('max'));
-    // Function to track the temperature value
+    // Function to track the max_threads value
     const trackMaxthreads = (value) => {
         max_threads = parseInt(value, 10);
     };
@@ -459,6 +479,9 @@ function initMaxThreads() {
     });
 }
 
+/**
+ * Initializes the session replay speed input field.
+ */
 function initSessionReplaySpeed() {
     if (sharedItem.length && Number.isFinite(sharedSessionAnimation)) {
         $('#animation_speed_in').val(sharedSessionAnimation);
@@ -473,6 +496,9 @@ function initSessionReplaySpeed() {
     });
 }
 
+/**
+ * Initializes the share session replay speed input field.
+ */
 function initShareSessionReplaySpeed() {
     const maxAnimationSpeed = parseFloat($('#share_animation_speed_in').attr('max'));
     sharedSessionAnimation = Math.min(sharedSessionAnimation, maxAnimationSpeed);
@@ -481,10 +507,12 @@ function initShareSessionReplaySpeed() {
     $('#share_animation_speed_in').on('input', function() {
         const value = $(this).val();
         sharedSessionAnimation = parseInt(value, 10);
-        console.log(sharedSessionAnimation)
     });
 }
 
+/**
+ * Initializes the assistant suggestions dropdown.
+ */
 function initAssistantSuggestions() {
     var $suggestions = $('.assistants-suggestions-dropdown');
     $('#user-input').on('keyup', function(e) {
@@ -527,6 +555,9 @@ function initAssistantSuggestions() {
     });
 }
 
+/**
+ * Initializes the assistant open/close functionality.
+ */
 function initAssistantOpenClose() {
     $('#open-assistant-configuration-btn').on('click',function() {
         $('.assistant-configuration').show();
@@ -540,66 +571,9 @@ function initAssistantOpenClose() {
     });
 }
 
-// function initFileUpload() {
-//     // Trigger file upload dialog when file upload button is clicked
-//     $('#file-upload-button').on('click', function() {
-//         $('#fs-upload').trigger('click');
-//     });
-
-//     // Handle file selection
-//     $('#fs-upload').on('change', async function(e) {
-//         if (currentThread == undefined) {
-//             showFailureNotice("Please select a thread to upload file to");
-//             return;
-//         }
-
-//         const $uploadedFilesContainer = $(".uploaded-files-container");
-
-//         // Process each selected file
-//         const filePromises = Array.from(e.currentTarget.files).map(async file => {
-//             const fileType = getSupportedFileType(file.name);
-//             if ('application/octet-stream' === fileType.mime) {
-//                 showFailureNotice(`Files of type ${file.type} are not supported`);
-//                 return;
-//             }
-//             if (!file.type) file.type = fileType.mime;
-//             if (file.size > 512000000) {
-//                 showFailureNotice(`File is too large ${file.size}, please reduce image size.`);
-//                 return;
-//             }
-
-//             let imgURL = URL.createObjectURL(file);
-
-//             // Create HTML for the uploaded file display
-//             const $fileItem = $(`
-//                 <div class="file-upload-item">
-//                     <img class="file-upload-item-img" src="svg/file-upload-img.jpeg" title="${file.name}" data-file-url="${imgURL}">
-//                     <button class="file-upload-delete">x</button>
-//                 </div>
-//             `);
-
-//             $uploadedFilesContainer.prepend($fileItem);
-
-//             // Process the image URL as per the given exact lines
-//             const img = $fileItem.find('.file-upload-item-img')[0];
-//             const r = await fetch($(img).attr('data-file-url'));
-//             const blob = await r.blob();
-//             const file_id = await storeFile(currentThread, file.name, file.type && file.type != '' ? file.type : fileType.mime, blob);
-//             if (file_id) {
-//                 $(img).attr('id', file_id);
-//                 $(img).attr('data-file', true);
-//             }
-//             $(img).removeAttr('data-file-url');
-
-//             $fileItem.find('.file-upload-delete').on('click', function (e) {
-//                 deleteFile(currentThread, file_id).then(() => { $fileItem.remove() });
-//             });
-//         });
-
-//         await Promise.all(filePromises);
-//     });
-// }
-
+/**
+ * Initializes the code block functionality.
+ */
 function initCodeBlock() {
     $(document).on('change', '.chat-message select.code-type', (ev) => {
         if (ev.target && ev.target.matches('select.code-type')) {
@@ -656,87 +630,3 @@ function initCodeBlock() {
         downloadContent(content, file, mime);
     });
 }
-
-// function initFileDragAndDrop() {
-//     const $dropZone = $('#drop_zone');
-
-//     function formatFileSize(size) {
-//         const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-//         let unitIndex = 0;
-//         let formattedSize = size;
-
-//         while (formattedSize >= 1024 && unitIndex < units.length - 1) {
-//             formattedSize /= 1024;
-//             unitIndex++;
-//         }
-
-//         return `${formattedSize.toFixed(2)} ${units[unitIndex]}`;
-//     }
-
-//     function displayUploadedFile(file) {
-//         const $uploadedFilesTable = $('#uploaded-files tbody');
-//         const $newRow = $('<tr></tr>');
-
-//         const $fileNameCell = $('<td></td>').text(file.name);
-//         const $fileSizeCell = $('<td></td>').text(formatFileSize(file.size));
-//         const now = new Date();
-//         const $fileUploadedCell = $('<td></td>').text(now.toLocaleString());
-
-//         const $deleteCell = $('<td></td>');
-//         const $deleteBtn = $('<span></span>').text('🗑️').addClass('delete-btn').on('click', () => {
-//             $newRow.remove();
-//         });
-
-//         $deleteCell.append($deleteBtn);
-//         $newRow.append($fileNameCell, $fileSizeCell, $fileUploadedCell, $deleteCell);
-
-//         $uploadedFilesTable.append($newRow);
-//     }
-
-//     // Handle the drag and drop functionality
-//     function dropHandler(ev) {
-//         ev.preventDefault();
-//         console.log("File(s) dropped");
-
-//         const dataTransfer = ev.originalEvent.dataTransfer;
-
-//         if (dataTransfer.items) {
-//             // Use DataTransferItemList interface to access the file(s)
-//             [...dataTransfer.items].forEach((item, i) => {
-//                 if (item.kind === "file") {
-//                     const file = item.getAsFile();
-//                     console.log(`… file[${i}].name = ${file.name}`);
-//                     displayUploadedFile(file);
-//                 }
-//             });
-//         } else {
-//             // Use DataTransfer interface to access the file(s)
-//             [...dataTransfer.files].forEach((file, i) => {
-//                 console.log(`… file[${i}].name = ${file.name}`);
-//                 displayUploadedFile(file);
-//             });
-//         }
-//     }
-
-//     function dragOverHandler(ev) {
-//         ev.preventDefault();
-//         console.log("File(s) in drop zone");
-//     }
-
-//     $dropZone.on('drop', dropHandler);
-//     $dropZone.on('dragover', dragOverHandler);
-
-//     // File upload link click handler
-//     $('#file-upload-link').on('click', function() {
-//         $('#file-input').click();
-//     });
-
-//     // Handle file input change
-//     $('#file-input').on('change', function(event) {
-//         const files = event.target.files;
-//         for (let i = 0; i < files.length; i++) {
-//             console.log(`File ${i}: ${files[i].name}`);
-//             displayUploadedFile(files[i]);
-//         }
-//     });
-// }

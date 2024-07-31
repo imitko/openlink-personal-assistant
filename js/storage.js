@@ -67,18 +67,17 @@ function addStorageItemToModal(href, title) {
 
 /**
  * Loads chat session from storage and updates the UI.
- * 
  * @param {string} link - The URL link to fetch the chat session from storage.
  */
 async function loadFromStorage(link) {
-    authClient.fetch (link, { method:'GET', headers: { 'Accept': 'application/json' } })
-    .then ((res) => {
+    authClient.fetch(link, { method:'GET', headers: { 'Accept': 'application/json' } })
+    .then((res) => {
         if (!res.ok) {
              throw new Error(res.statusText);
         }
         return res.json();
     })
-    .then ((res) => {
+    .then((res) => {
         let messages = res.messages;
         let info = res.info;
         if (!messages && res.data) {
@@ -103,7 +102,7 @@ async function loadFromStorage(link) {
                         default:
                             content = '';
                     }
-                    messages.push ( { role: role, text: content, prompt_id: item.id, assistant_id: assistant_id } );
+                    messages.push({ role: role, text: content, prompt_id: item.id, assistant_id: assistant_id });
                 }
             }
         }
@@ -111,7 +110,7 @@ async function loadFromStorage(link) {
         showConversation(messages);
         $('.messages').scrollTop($('.messages').prop('scrollHeight'));
     })
-    .catch ((e) => { alert (e.message); });
+    .catch((e) => { alert(e.message); });
 
     $('#user-input-textbox').hide();
     $('.continue-button-group').show();
@@ -133,7 +132,7 @@ async function importSession() {
     url.search = params.toString();
     $('.loader').show();
     try {
-        const res = await authClient.fetch (url.toString(), {method:'POST',headers: {'Accept':'application/json' },body:JSON.stringify(importedSession)})
+        const res = await authClient.fetch(url.toString(), {method:'POST',headers: {'Accept':'application/json' },body:JSON.stringify(importedSession)})
         if (!res.ok) throw new Error(res.statusText);
         const obj = await res.json(); // Parse response JSON
         await createNewThread(obj);
@@ -148,7 +147,6 @@ async function importSession() {
 
 /**
  * Exports the chat session to a JSON file in the storage folder.
- * 
  * @param {string} thread_id - The ID of the chat session to export.
  */
 async function exportSession(thread_id) {
@@ -190,6 +188,10 @@ async function exportSession(thread_id) {
     }
 }
 
+/**
+ * Handles file selection and reads the content of the selected file.
+ * @param {Event} event - The file input change event.
+ */
 function handleFileSelect(event) {
     const file = event.target.files[0];
     if (file) {
@@ -206,6 +208,10 @@ function handleFileSelect(event) {
     }
 }
 
+/**
+ * Processes JSON data and updates the UI with the chat session.
+ * @param {Object} jsonData - The JSON data to process.
+ */
 function processJsonData(jsonData) {
     let messages = [];
     let info = jsonData.info;
@@ -240,6 +246,12 @@ function processJsonData(jsonData) {
     $('.loader').hide();
 }
 
+/**
+ * Downloads content as a file.
+ * @param {string} content - The content to download.
+ * @param {string} fileName - The name of the file.
+ * @param {string} contentType - The MIME type of the file.
+ */
 function downloadContent(content, fileName, contentType) {
     var a = document.createElement('a');
     var file = new Blob([content], {type: contentType});

@@ -122,6 +122,8 @@ async function checkResumeThread() {
             let thr = await resp.json();
             // TODO: add thread to the list of the existing threads
             currentThread = thr.thread_id;
+            $('.threads-dropdown-text').text(thr.title ? thr.title : thr.thread_id);
+            addThreadsDropdownItem(thr.thread_id, thr.thread_title);
         } else {
             throw new Error(resp.statusText);
         }
@@ -255,7 +257,6 @@ async function showConversation(items) {
             let dataUrl = item.dataUrl
             const $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
             $chatMessages.append($messageContainer); // Append message to chat
-            console.log("adding file link: ", dataUrl)
         }
 
         else {
@@ -273,7 +274,6 @@ async function showConversation(items) {
 
     // Scroll to the bottom of the chat
     $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
-    $('.threads-dropdown-text').text(currentThread); // update thread dropdown id
     $('.loader').css('display', 'none'); // Hide loader
 }
 
@@ -406,8 +406,6 @@ function readMessage(input) {
     const assistant_id = currentAssistant;
 
     if (dataUrl) {
-        console.log("data url: ", dataUrl)
-        console.log("name: ", name)
         addFileToUI(messageId, name, "file", dataUrl);
     }
 
@@ -536,7 +534,6 @@ function copyAllMessagesToClipboard() {
 async function createNewThread(thread = null) {
     $('.loader').css('display', 'block'); // Show loader
     apiKey = localStorage.getItem('openlinksw.com:opal:gpt-api-key');
-    console.log("importing thread creation")
 
     if (!thread) {
         $('.chat-messages').empty(); // Clear chat elements
@@ -564,7 +561,6 @@ async function createNewThread(thread = null) {
             $('.loader').css('display', 'none'); // Hide loader
         }
     } else {
-        console.log("adding to existing thread")
         currentThread = thread.thread_id;
         $('.threads-dropdown-text').text(currentThread);
         addThreadsDropdownItem(thread.thread_id, thread.title);
