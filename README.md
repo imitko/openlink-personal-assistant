@@ -18,17 +18,17 @@ The user interface is pure Javascript & CSS client used to authenticate & connec
   Note: We choose to use SSE (streaming) to receive answers because LLM takes quite a bit of time ~10s or more to complete most of prompts, therefore for better user experience we act like a proxy where upon receiving the answer we send tokens back via Websocket to client UI, in same time we keep reading so that when answer is received to store in the chat session table.
  
   - [Websockets](https://datatracker.ietf.org/doc/html/rfc6455) service (WS)
-    The WSS was chosen as protocol to maintain chat session because of full-duplex capabilities. It's stored procedure entry is used to maintain the OAI chat protocol and to keep chat session intact. 
+    The WSS was chosen as protocol to maintain chat sessions because of its full-duplex capabilities. Its stored procedure entry is used to maintain the OAI chat protocol and to keep chat sessions intact. 
 
-  - VAL authentication & authorisation 
+  - VAL authentication & authorization 
    self-explanatory
 
   - REST helpers interface
-   As Javascript OAuth2 client library do not support  [WebSockets API](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API), as well as for UI tasks like editing titles, deleting chat sessions etc. is easiest to implement using fetch() via OAuth2 client, we provide few API calls for chat sessions management.
+   As the Javascript OAuth2 client library does not support  [WebSockets API](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API), as well as for UI tasks like editing titles, deleting chat sessions etc. is easiest to implement using fetch() via OAuth2 client, we provide few API calls for chat sessions management.
  
 ### Client UI 
 
-  The client UI is implemented using following components:
+  The client UI is implemented using the following components:
 
   - jQuery 3.7
   - Bootstrap 3.4 
@@ -36,9 +36,6 @@ The user interface is pure Javascript & CSS client used to authenticate & connec
 
 ## Manual installation and configuration
 
-  - Checkout code
-   ```
-   $ git clone git@devhub.openlinksw.com:public/imitko/oai-chat
    ```
   - create config.js (optional)
    ```
@@ -47,7 +44,7 @@ The user interface is pure Javascript & CSS client used to authenticate & connec
    var wsServer='wss://localhost:8443/ws/chat';
    var httpServer='https://localhost:8443';
    ```
-   edit the above file and set proper host name and port number of the Virtuoso Server designated to host the chat back-end
+   edit the above file and set proper hostname and port number of the Virtuoso Server designated to host the chat back-end
 
    - edit `sql/vd.sql` script and fix the `lhost` & `vhost` arguments
    - execute via command-line `isql` tool the scripts in following order:
@@ -62,5 +59,5 @@ The user interface is pure Javascript & CSS client used to authenticate & connec
      - optionally can execute `sql/func.sql` to define PL call back for OAI Chat
      - go to https://host/chat/ to open client interface
    
-   **IMPORTANT**:  The application is designed & implemented to use OAuth2 for authentication & authorisation, thus **CAN NOT** use HTTP insecure host, therefore must define virtual directories (vd.sql) on secure listener.
+   **IMPORTANT**:  The application is designed & implemented to use OAuth2 for authentication & authorization, thus **CAN NOT** use HTTP insecure host, therefore must define virtual directories (vd.sql) on secure listener.
 
