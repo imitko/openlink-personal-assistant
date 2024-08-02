@@ -15,7 +15,7 @@ function initUI() {
     // Event listener for the Save button
     // TODO: clean this section
     document.getElementById('save-assistant-button').addEventListener('click', saveAssistantConfiguration);
-    document.getElementById('new-assistant').addEventListener('click', clearAssistant);
+    // document.getElementById('new-assistant').addEventListener('click', clearAssistant);
     document.getElementById('clone-assistant-button').addEventListener('click', cloneAssistant);
 
     initThreadsDropdown();
@@ -38,6 +38,8 @@ function initUI() {
 
     initAssistantSuggestions();
     initAssistantOpenClose();
+
+    initAudio();
 
     // initFileUpload();
     initCodeBlock();
@@ -130,8 +132,6 @@ function initThreadsDropdown() {
     dropdown.find(".threads-dropdown-menu").on("click", ".threads-dropdown-item", function(event) {
         // Logic associated with clicking a threads-dropdown-item
         if (!checkApiKey()) return;
-
-        console.log("case hitttt")
         $('.threads-dropdown-text').text($(this).text());
         currentThread = $(this).text();
         loadConversation($(this).data('chat-id'));
@@ -354,12 +354,6 @@ function initTemperature() {
         temperature = parseFloat(value);
     };
 
-    // Function to set the value of the slider and input field
-    const setTemperature = (value) => {
-        $('#temperature').val(value);
-        $('#temperature_in').val(value);
-    };
-
     // Update input field when slider changes
     $('#temperature_in').on('input', function() {
         const value = $(this).val();
@@ -386,12 +380,6 @@ function initTopP() {
     // Function to track the top_p value
     const trackTopP = (value) => {
         top_p = parseFloat(value);
-    };
-
-    // Function to set the value of the slider and input field
-    const setTopP = (value) => {
-        $('#top_p').val(value);
-        $('#top_p_in').val(value);
     };
 
     // Update input field when slider changes
@@ -422,12 +410,6 @@ function initMaxTokens() {
         max_tokens = parseInt(value, 10);
     };
 
-    // Function to set the value of the slider and input field
-    const setMaxTokens = (value) => {
-        $('#max_tokens').val(value);
-        $('#max_tokens_in').val(value);
-    };
-
     // Update input field when slider changes
     $('#max_tokens_in').on('input', function() {
         const value = $(this).val();
@@ -454,12 +436,6 @@ function initMaxThreads() {
     // Function to track the max_threads value
     const trackMaxthreads = (value) => {
         max_threads = parseInt(value, 10);
-    };
-
-    // Function to set the value of the slider and input field
-    const setMaxthreads = (value) => {
-        $('#max_threads').val(value);
-        $('#max_threads_in').val(value);
     };
 
     // Update input field when slider changes
@@ -628,5 +604,23 @@ function initCodeBlock() {
         const file = `${prompt_id}.${ext}`;
     
         downloadContent(content, file, mime);
+    });
+}
+
+function initAudio() {
+    $('#enable_audio').on('click', function(e) {
+        if (e.target.checked) {
+            audioEnable();
+        } else {
+            audioDisable();
+        }
+    });
+
+    $('#record-button').on('click', function() {
+        startRecording();
+    });
+
+    $('#stop-recording-button').on('click', function() {
+        stopRecording();
     });
 }

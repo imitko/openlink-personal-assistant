@@ -23,11 +23,17 @@
         <script src="js/websocket.js"></script>
         <script src="js/storage.js"></script>
         <script src="js/files.js"></script>
+        <script src="js/audio.js"></script>
         <script src="js/main.js"></script>
     </head>
     <body>
         <div class="grid-container">            
             <div class="assistant-configuration">
+                <button class="btn" id="close-assistant-configuration-btn">
+                    <span data-toggle="tooltip" data-placement="right" title="Close Assistant Configuration">
+                        <img src="svg/expand-left.svg"/>
+                    </span>
+                </button>
                 <div class="assistants-dropdown">
                     <div class="assistants-dropdown-btn" id="assistantsDropdown">
                         <span class="assistants-dropdown-text">Select an Assistant</span>
@@ -150,6 +156,12 @@
 
                     <div class="session-configuration">
                         <h3 class="section-title">SESSION CONFIGURATION</h3>
+                        <div class="field enable-audio-field" id="enable-audio-field">
+                            <label for="enable_audio" data-toggle="tooltip" data-placement="top" class="field-label" id="audio-field-label" data-bs-original-title="Enable audio recording for the session.">
+                                Enable Audio
+                            </label>
+                            <input type="checkbox" id="enable_audio" class="form-check-input">
+                        </div>
                         <div class="field" id="animation-speed-field">
                             <label for="animation_speed_in" data-toggle="tooltip" data-placement="top" class="field-label" 
                                 data-bs-original-title="Animation speed for session replay.">
@@ -182,11 +194,6 @@
                 </div>
             </div>
             <div class="chat-window">
-                <button class="btn" id="close-assistant-configuration-btn">
-                    <span data-toggle="tooltip" data-placement="right" title="Close Assistant Configuration">
-                        <img src="svg/expand-left.svg"/>
-                    </span>
-                </button>
                 <button class="btn" id="open-assistant-configuration-btn">
                     <span data-toggle="tooltip" data-placement="right" title="Open Assistant Configuration">
                         <img src="svg/expand-right.svg"/>
@@ -206,7 +213,7 @@
                     </div> 
                     <div class="top-menu-buttons">
                         <button class="top-menu-button new-thread" title="New Thread">New Thread</button>
-                        <button class="top-menu-button" id="new-assistant" title="New Assistant">New Assistant</button>
+                        <!-- <button class="top-menu-button" id="new-assistant" title="New Assistant">New Assistant</button> -->
                     </div>                      
                     <div class="chat-window-buttons">
                         <!-- <button class="icon-button" title="About"><img src="svg/book.svg" alt="About"></button> -->
@@ -228,6 +235,9 @@
                 <div class="continue-button-group">
                     <button id="continue-button" class="button continue-button">Resume Chat</button>
                 </div>
+                <div class="reconnect-button-group">
+                    <button id="reconnect-button" class="button reconnect-button">Reconnect</button>
+                </div>
                 <div class="textbox-container" id="user-input-textbox">
                     <input type="file" style="display:none;" multiple="" id="fs-upload">
                     <div class="assistants-suggestions-dropdown hidden"></div>
@@ -239,7 +249,9 @@
                     </div>
                     <div class="buttons-container">
                         <div class="left-buttons">
-                            <button class="icon-button" id="file-upload-button" title="Upload File"><img src="svg/paperclip-2.svg" alt="File Search" style="transform: scaleX(-1);"></button>
+                            <button class="icon-button" id="record-button" title="Record"><img src="svg/microphone.svg" alt="Microphone"></button>
+                            <button class="icon-button" id="stop-recording-button" title="Stop Recording"><img src="svg/stop-recording.svg" alt="Stop Recording"></button>
+                            <button class="icon-button" id="file-upload-button" title="Upload File"><img src="svg/paperclip-2.svg" alt="File Search"></button>
                         </div>
                         <div class="right-buttons">
                             <div class="run-button-group">

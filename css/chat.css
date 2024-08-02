@@ -718,16 +718,24 @@ h2 {
   white-space: nowrap;
 }
 
-#open-assistant-configuration-btn {
+#open-assistant-configuration-btn, #close-assistant-configuration-btn {
   display: none;
 }
 
-#open-assistant-configuration-btn, #close-assistant-configuration-btn {
-  position: absolute;
-  left: 5px;
+#close-assistant-configuration-btn {
+  position: fixed;
   top: 50%;
-  transform: translateY(50px);
-  padding: 0;
+  transform: translateY(-50%);
+  z-index: 1000; /* Ensure the button is above other content */
+  left: calc(var(--assistant-configuration-width) - 40px);
+}
+
+#open-assistant-configuration-btn {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000; /* Ensure the button is above other content */
+  left: -5px;
 }
 
 #close-assistant-configuration-btn img, #open-assistant-configuration-btn img {
@@ -999,4 +1007,22 @@ div.nano_start, div.nano_end {
   margin: 10px 0;
   padding: 10px;
   border: 1px solid black;
+}
+
+.enable-audio-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#enable_audio {
+  margin: 0;
+}
+
+#stop-recording-button {
+  display: none;
+}
+
+#audio-field-label {
+  margin: 0;
 }

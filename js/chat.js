@@ -97,6 +97,7 @@ function displayThreadsInDropdown(threads) {
 
     if (threads.length && !currentThread) {
         currentThread = threads[0].id;
+        $('.threads-dropdown-text').text(threads[0].title ? threads[0].title : threads[0].id);
     }
 
     // Append chat topics to the dropdown
@@ -120,10 +121,9 @@ async function checkResumeThread() {
         const resp = await authClient.fetch (url.toString());
         if (resp.ok) {
             let thr = await resp.json();
-            // TODO: add thread to the list of the existing threads
             currentThread = thr.thread_id;
             $('.threads-dropdown-text').text(thr.title ? thr.title : thr.thread_id);
-            addThreadsDropdownItem(thr.thread_id, thr.thread_title);
+            addThreadsDropdownItem(thr.thread_id, thr.title);
         } else {
             throw new Error(resp.statusText);
         }
@@ -584,7 +584,7 @@ async function addThreadsDropdownItem(thread_id, thread_title = null) {
 
     const $text = $('<span>', {
         class: 'threads-dropdown-item-text',
-        text: thread_title || `${thread_id}`, // Set the text to chat id or chat ID
+        text: thread_title || thread_id, // Set the text to chat id or chat ID
     });
 
     const $moreButton = $('<img>', {
@@ -904,7 +904,7 @@ async function loadAssistants(assistant_id = null) {
             const $dropdownText = $('.assistants-dropdown-text');
 
             if (assistants.length === 0) {
-                $dropdownText.text('Select an Assistant');
+                $dropdownText.text('Create new Assistant');
             } else {
                 // Add newly created assistant
                 if (newAssistant) {
@@ -913,7 +913,7 @@ async function loadAssistants(assistant_id = null) {
                     $item.on('click', function () {
                         $('.model-configuration-fields').show();
                         setAssistant(newAssistant.id);
-                        $dropdownText.text(newAssistant.name);
+                        $dropdownText.text("@" + newAssistant.name);
                     });
                     $dropdownMenu.append($item);
                 }
@@ -924,9 +924,14 @@ async function loadAssistants(assistant_id = null) {
                     $item.on('click', function () {
                         $('.model-configuration-fields').show();
                         setAssistant(defaultAssistant.id);
-                        $dropdownText.text("Default Assistant");
+                        $dropdownText.text("@Default");
                     });
                     $dropdownMenu.append($item);
+
+                    $('.model-configuration-fields').show();
+                    $('#close-assistant-configuration-btn').show();
+                    setAssistant(defaultAssistant.id);
+                    $dropdownText.text("@Default");
                 }
 
                 // Add the other assistants
@@ -935,7 +940,7 @@ async function loadAssistants(assistant_id = null) {
                     $item.on('click', function () {
                         $('.model-configuration-fields').show();
                         setAssistant(assistant.id);
-                        $dropdownText.text(assistant.name);
+                        $dropdownText.text("@" + assistant.name);
                     });
                     $dropdownMenu.append($item);
                 });
@@ -1072,6 +1077,8 @@ function setFunctions(tools) {
  * Clears the current assistant configuration.
  */
 function clearAssistant() {
+    
+
     $('.model-configuration-fields').show();
     assistant_id = null;
     assistant_name = null;
@@ -1091,10 +1098,17 @@ function clearAssistant() {
     max_tokens = 4096;
     max_threads = 500;
 
-    setMaxTokens(max_tokens);
-    setMaxThread(max_threads);
-    setTopP(top_p);
-    setTemperature(temperature);
+    $('#max_tokens').val(max_tokens);
+    $('#max_tokens_in').val(max_tokens);
+    
+    $('#max_threads').val(max_threads);
+    $('#max_threads_in').val(max_threads);
+
+    $('#top_p').val(top_p);
+    $('#top_p_in').val(top_p);
+
+    $('#temperature').val(temperature);
+    $('#temperature_in').val(temperature);
 
     enabledFunctions = new Array();
     $('.functions-list').empty();

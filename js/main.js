@@ -1,5 +1,4 @@
 // Required
-// TODO: Enable audio
 // TODO: Image upload + Enable high image resolution + Scale images setting
 // TODO: Add session replay (session replay speed parameter as well) - set animation when getting permalink - set animation speed in sidebarv
 // TODO: Comment/clean code and upload to github

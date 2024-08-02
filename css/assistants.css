@@ -15,6 +15,7 @@
     --grey-btn-color: #ececf1;
     --grey-hover-btn: #d1d1dc;
     --assistants-window-margin: 30px;
+    --assistant-configuration-width: 375px;
 }
 
 .assistants-wrapper {
@@ -85,7 +86,7 @@
 /* ============================== Assistant Configuration Wrapper ============================== */
 .assistant-configuration {
     position: relative;
-    width: 375px;
+    width: var(--assistant-configuration-width);
     height: 100%; /* Ensure container takes up full height */
     padding: var(--chat-window-top-margin) var(--assistants-window-margin);
     overflow-y: scroll;
