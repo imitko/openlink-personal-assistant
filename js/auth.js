@@ -138,6 +138,7 @@ async function updateLoginState() {
         await loadThreads();
         await loadAssistants();
         await loadModels();
+        await loadFunctions();
   
         /* this connect only, the authentication is onOpen hook/chatAuthenticate */
         webSocket = new WebSocket(wsUrl.toString());

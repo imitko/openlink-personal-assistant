@@ -369,6 +369,10 @@ async function sendMessage(prompt_id, text, thread_id = currentThread, assistant
 
     let images = new Array();
     let image_resolution = 'low';
+    let sqlFunctions = enabledFunctions.map(name => {
+        const match = availableFunctions.find(item => item.name === name);
+        return match ? match.function : null;
+    }).filter(Boolean);
 
     if (webSocket.readyState === WebSocket.OPEN) {
         let request = {
@@ -383,7 +387,7 @@ async function sendMessage(prompt_id, text, thread_id = currentThread, assistant
             images: images,
             image_resolution: image_resolution,
             max_tokens: max_tokens,
-            functions: enabledFunctions,
+            functions: sqlFunctions,
             files: selectedFiles.map(fileObj => fileObj.id),
         };
         webSocket.send(JSON.stringify(request)); // Send request via WebSocket
@@ -1017,8 +1021,8 @@ function setParameters(item) {
  * @param {Array} tools - The list of tools to set.
  */
 function setFunctions(tools) {
-    enabledFunctions = new Array();
     const $functionsList = $('.functions-list');
+    const $allFunctions = $('#function-input .function-item');
     $functionsList.empty();
 
     if (Array.isArray(tools)) {
@@ -1035,9 +1039,8 @@ function setFunctions(tools) {
                 $functionsList.append($functionItem);
                 
                 const $checkbox = $functionItem.find('.function-checkbox');
-                if ($checkbox.is(':checked')) {
-                    enabledFunctions.push(funcName);
-                }
+                const $allFunctionsCb = $allFunctions.find(`#fn-cb-${funcName}`);
+                if ($allFunctionsCb) $allFunctionsCb.prop('checked', $checkbox.is(':checked'));
 
                 // Add event handler for checkbox click
                 $checkbox.on('click', function () {
@@ -1134,6 +1137,13 @@ async function saveAssistantConfiguration() {
     const topP = parseFloat(document.getElementById('top_p').value);
     const maxTokens = parseInt(document.getElementById('max_tokens').value);
     const maxThreads = parseInt(document.getElementById('max_threads').value);
+    const sqlFunctions = enabledFunctions.map(name => {
+        const match = availableFunctions.find(item => item.name === name);
+        return match ? match.function : null;
+    }).filter(Boolean);
+    // TODO: add UI to select vector store or to add files for making assistant
+    const vector_store_id = null; // single vector store id, or file_ids array
+    const file_ids = null; // if Array() will enable file search
 
     if (!assistantName) {
         showFailureNotice("Assistant name cannot be empty");
@@ -1159,8 +1169,9 @@ async function saveAssistantConfiguration() {
         model: model,
         top_p: topP,
         temperature: temperature,
-        max_tokens: maxTokens,
-        max_threads: maxThreads
+        functions: sqlFunctions,
+        file_ids: file_ids,
+        vector_store_id: vector_store_id,
     };
 
     if (assistantId) {
@@ -1171,6 +1182,9 @@ async function saveAssistantConfiguration() {
     let url = new URL('/chat/api/assistants', httpBase); // Create URL for the API call
     let params = new URLSearchParams(url.search);
     params.append('apiKey', apiKey ? apiKey : '');
+    if (assistantId) {
+        params.append('assistant_id', assistantId);
+    }
     url.search = params.toString();
 
     try {
@@ -1263,6 +1277,34 @@ function loadModels() {
         .catch(error => {
             console.log('Cannot get models: ' + error + ' setting defaults');
         });
+}
+
+async function loadFunctions() {
+    try {
+        let url = new URL('/chat/api/listFunctions', httpBase);
+        let params = new URLSearchParams(url.search);
+        params.append('asst', 1);
+        url.search = params.toString();
+        const resp = await fetch (url.toString());
+        if (resp.status === 200) {
+            availableFunctions = await resp.json();
+            let $funcs = $('#function-input');
+            availableFunctions.forEach(fn => {
+                const $functionItem = $(`
+                    <div class="function-item">
+                        <img src="svg/function.svg" alt="Function Icon" class="function-icon">
+                        <label for="fn-cb-${fn.name}">${fn.title}</label>
+                        <input type="checkbox" id="fn-cb-${fn.name}" class="function-checkbox" 
+                        data-function-id="${fn.name}" data-function-name="${fn.function}">
+                    </div>
+                `);
+                $funcs.append($functionItem);
+            });
+        } else
+            showFailureNotice ('Loading helper functions failed: ' + resp.statusText);
+    } catch (e) {
+        showFailureNotice('Loading helper functions failed: ' + e);
+    }
 }
 
 async function setModel(model_id) {
