@@ -322,10 +322,8 @@ function initFunctionsModal() {
             if($(this).prop('checked')) {
                 const id = $(this).attr('data-function-id');
                 const sql_name = $(this).attr('data-function-name');
-                if (!$('#'+id+'-checkbox').length) {
-                    tools.push({type:'function', function: {name: id, func: sql_name}});
-                    enabledFunctions.push(id);
-                }
+                tools.push({type:'function', function: {name: id, func: sql_name}});
+                enabledFunctions.push(id);
             }
         });
         setFunctions(tools);

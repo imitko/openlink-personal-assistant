@@ -1033,7 +1033,7 @@ function setFunctions(tools) {
                     <div class="function-item">
                         <img src="svg/function.svg" alt="Function Icon" class="function-icon">
                         <span>${funcName}</span>
-                        <input type="checkbox" class="function-checkbox" id="${funcName}-checkbox" checked>
+                        <input type="checkbox" class="function-checkbox" id="${funcName}-checkbox" data-function-id="${funcName}" checked>
                     </div>
                 `);
                 $functionsList.append($functionItem);
@@ -1044,6 +1044,9 @@ function setFunctions(tools) {
 
                 // Add event handler for checkbox click
                 $checkbox.on('click', function () {
+                    const id = $(this).attr('data-function-id');
+                    const $cb = $(`#fn-cb-${id}`);
+                    $cb?.prop('checked', $checkbox.is(':checked'));
                     if ($(this).is(':checked')) {
                         if (enabledFunctions.indexOf(funcName) == -1) {
                             enabledFunctions.push(funcName);
