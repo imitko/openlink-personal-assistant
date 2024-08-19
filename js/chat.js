@@ -992,6 +992,19 @@ function setAssistant(assistant_id) {
     setParameters(item);
     setFunctions(item.tools);
     setModel(item.model);
+    const $fs = $('#file-search');
+    const $vs = $('.vector-store');
+    if (item.tools.some(tool => tool.type === "file_search")) {
+        $fs.attr('checked',true);
+        fileSearch = item.tool_resources?.file_search?.vector_store_ids;
+        if (fileSearch.length > 0) {
+            $vs.append($(`<div class="function-item"><span>${fileSearch[0]}</span></div>`));
+        }
+    } else {
+        $fs.attr('checked',false);
+        fileSearch = null;
+        $vs.empty();
+    }
 }
 
 /**
