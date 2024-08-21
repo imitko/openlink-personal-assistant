@@ -405,11 +405,11 @@ async function sendMessage(prompt_id, text, thread_id = currentThread, assistant
 function readMessage(input) {
     $('.loader').css('display', 'block'); // Show loader
     const obj = JSON.parse(input);
-    const kind = obj.kind;
-    const text = obj.data;
-    const dataUrl = obj.data?.dataUrl;
-    const name = obj.name
-    const assistant_id = currentAssistant;
+    let kind = obj.kind;
+    let text = obj.data;
+    let dataUrl = obj.data?.dataUrl;
+    let name = obj.name;
+    let assistant_id = currentAssistant;
 
     if (typeof(text) === 'object') {
         text = '';
@@ -431,7 +431,7 @@ function readMessage(input) {
             currentRunId = obj.data.run_id;
         }
     } else if ('message_id' === kind) {
-        $('#'+prompt_id).attr('id', message_id); // set user prompt id
+        $('#'+obj.prompt_id).attr('id', obj.message_id); // set user prompt id
     } else if (text === '[DONE]' || text === '[LENGTH]') {
         // End of the message
         accumulatedMessage = ''; // Reset the accumulated message
