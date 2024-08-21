@@ -20,6 +20,7 @@ var authType = typeof(authenticationType) != 'undefined' ? authenticationType : 
 var authClient = solidClientAuthentication.default;
 var wsUrl = new URL(wsApiUrl); /* WebSockets endpoint */
 var currentThread = null;
+var currentRunId = undefined;
 var currentAssistant = undefined;
 var currentAssistantName = undefined;
 var currentModel = undefined;

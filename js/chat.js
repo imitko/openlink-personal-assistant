@@ -289,6 +289,7 @@ function addMessageToUI(message_id, role, text, assistant_id = null) {
     const $messageContainer = createMessageHTML(text, role, message_id, assistant_id); // Create message HTML
     $('.chat-messages').append($messageContainer); // Append message to chat
     $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300); // Scroll to the bottom
+    return $messageContainer;
 }
 
 function addFileToUI(message_id, name, role, dataUrl = null) {
@@ -404,29 +405,51 @@ async function sendMessage(prompt_id, text, thread_id = currentThread, assistant
 function readMessage(input) {
     $('.loader').css('display', 'block'); // Show loader
     const obj = JSON.parse(input);
+    const kind = obj.kind;
     const text = obj.data;
-    const dataUrl = obj.dataUrl
+    const dataUrl = obj.data?.dataUrl;
     const name = obj.name
     const assistant_id = currentAssistant;
 
+    if (typeof(text) === 'object') {
+        text = '';
+    }
+
     if (dataUrl) {
         addFileToUI(messageId, name, "file", dataUrl);
-    }
-
-    else if (text === '[DONE]' || text === '[LENGTH]') {
-        // End of the message, display accumulated message
-        if (accumulatedMessage) {
-            addMessageToUI(lastReadMessageId, 'Assistant', accumulatedMessage, assistant_id);
-            accumulatedMessage = ''; // Reset the accumulated message
+    } else if ('function' === kind || 'tool' === kind) {
+        let func_call = JSON.parse (text);
+        let title = '**Function: ' + func_call.func_title + '** ('+ func_call.func + ')';
+        let div = title + '\n*Arguments:*\n```json\n' + func_call.func_args + '\n```';
+        addMessageToUI(obj.message_id, 'Function', div, assistant_id)
+    } else if ('function_response' === kind) {
+        addMessageToUI(obj.message_id, 'Function', '**Result:**\n```\n'+text+'\n```', assistant_id)
+    } else if ('authentication' === kind) {
+        // TODO: tool authentication needed, see v1
+    } else if ('info' === kind) {
+        if (obj.data.run_id) {
+            currentRunId = obj.data.run_id;
         }
+    } else if ('message_id' === kind) {
+        $('#'+prompt_id).attr('id', message_id); // set user prompt id
+    } else if (text === '[DONE]' || text === '[LENGTH]') {
+        // End of the message
+        accumulatedMessage = ''; // Reset the accumulated message
+        receivingMessage = null;
         $('.loader').css('display', 'none'); // Hide loader
         return;
-    }
-
-    else if (!text.run_id) {
-        // Accumulate the message parts
-        accumulatedMessage += text;
+    } else if (!text.run_id) {
         lastReadMessageId = obj.message_id;
+        accumulatedMessage += text;
+        if (!receivingMessage) {
+            let $container = addMessageToUI(obj.message_id, 'Assistant', accumulatedMessage, assistant_id);
+            receivingMessage = $container.find('.message-body');
+        } else {
+            receivingMessage.html(md.render(accumulatedMessage));
+        }
+        if (-1 != text.indexOf('\n')) {
+            $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
+        }
     }
 }
 
