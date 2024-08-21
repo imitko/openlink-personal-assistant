@@ -313,34 +313,22 @@ function initFunctionsModal() {
     $('.functions-btn').on('click', function() {
         $('#function-modal').show();
     });
-
     $(".close").on("click", () => $('#function-modal').hide());
-
-    const placeholderText = `{
-        "name": "get_weather",
-        "description": "Determine weather in my location",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "location": {
-                    "type": "string",
-                    "description": "The city and state e.g. San Francisco, CA"
-                },
-                "unit": {
-                    "type": "string",
-                    "enum": [
-                        "C",
-                        "F"
-                    ]
-                }
-            },
-            "required": [
-                "location"
-            ]
-        }
-    }`;    
-
-    $('#function-input').attr('placeholder', placeholderText.trim());
+    /* perhaps should do listFunctions here & init the content */
+    $('.functions-save-button').on('click', function() {
+        let tools = new Array();
+        enabledFunctions = new Array();
+        $('#function-input .function-item input[type="checkbox"]').each(function() {
+            if($(this).prop('checked')) {
+                const id = $(this).attr('data-function-id');
+                const sql_name = $(this).attr('data-function-name');
+                tools.push({type:'function', function: {name: id, func: sql_name}});
+                enabledFunctions.push(id);
+            }
+        });
+        setFunctions(tools);
+        $('#function-modal').hide();
+    });
 }
 
 /**

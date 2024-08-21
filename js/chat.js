@@ -369,6 +369,10 @@ async function sendMessage(prompt_id, text, thread_id = currentThread, assistant
 
     let images = new Array();
     let image_resolution = 'low';
+    let sqlFunctions = enabledFunctions.map(name => {
+        const match = availableFunctions.find(item => item.name === name);
+        return match ? match.function : null;
+    }).filter(Boolean);
 
     if (webSocket.readyState === WebSocket.OPEN) {
         let request = {
@@ -383,7 +387,7 @@ async function sendMessage(prompt_id, text, thread_id = currentThread, assistant
             images: images,
             image_resolution: image_resolution,
             max_tokens: max_tokens,
-            functions: enabledFunctions,
+            functions: sqlFunctions,
             files: selectedFiles.map(fileObj => fileObj.id),
         };
         webSocket.send(JSON.stringify(request)); // Send request via WebSocket
@@ -873,6 +877,63 @@ async function loadShare(obj_id) {
     $('.loader').hide(); // Hide loader
 }
 
+async function getVectorStoreFiles(id) {
+    let url = new URL('/chat/api/vector_stores', httpBase);
+    let params = new URLSearchParams(url.search);
+    params.append('vector_store_id', id);
+    params.append('filter', '*');
+    params.append('limit', 50);
+    params.append('apiKey', apiKey ? apiKey : '');
+    url.search = params.toString();
+    $('.loader').show();
+    const fs = await authClient.fetch (url.toString()).then((r) => {
+        if (!r.ok) {
+            return r.json().then(e => {
+                throw new Error(`${e.error}: ${e.message}`);
+            });
+            throw new Error(r.statusText);
+        }
+        return r.json();
+    }).then((data) => {
+        return data;
+    }).catch((e) => {
+        showFailureNotice('Loading messages failed: ' + e);
+    });
+    $('.loader').hide(); // Hide loader
+    return fs;
+}
+
+/**
+* Loads a vector store object by given id
+*/
+async function getVectorStore(id) {
+    if (!id) {
+        return undefined;
+    }
+    let url = new URL('/chat/api/vector_stores', httpBase);
+    let params = new URLSearchParams(url.search);
+    params.append('vector_store_id', id);
+    params.append('apiKey', apiKey ? apiKey : '');
+    url.search = params.toString();
+    $('.loader').show(); // Show loader
+    const vs = await authClient.fetch (url.toString()).then((r) => {
+        if (!r.ok) {
+            return r.json().then(e => {
+                throw new Error(`${e.error}: ${e.message}`);
+            });
+            throw new Error(r.statusText);
+        }
+        return r.json();
+    }).then((data) => {
+        return data;
+    }).catch((e) => {
+        showFailureNotice('Loading messages failed: ' + e);
+        return undefined;
+    });
+    $('.loader').hide(); // Hide loader
+    return vs;
+}
+
 /**
  * Loads the list of assistants and updates the UI.
  * 
@@ -933,6 +994,9 @@ async function loadAssistants(assistant_id = null) {
                     setAssistant(defaultAssistant.id);
                     $dropdownText.text("@Default");
                 }
+                $('#file-search').on('click', function () {
+                    fileSearch = $(this).is(':checked');
+                });
 
                 // Add the other assistants
                 otherAssistants.forEach(assistant => {
@@ -965,7 +1029,7 @@ async function loadAssistants(assistant_id = null) {
  * 
  * @param {string} assistant_id - The ID of the assistant to set.
  */
-function setAssistant(assistant_id) {
+async function setAssistant(assistant_id) {
     let item = assistants.find(obj => obj.id === assistant_id);
     if (!item) {
         return;
@@ -988,6 +1052,23 @@ function setAssistant(assistant_id) {
     setParameters(item);
     setFunctions(item.tools);
     setModel(item.model);
+    const $fs = $('#file-search');
+    const $vs = $('.vector-store');
+    fileSearch = item.tools?.some(tool => tool.type === "file_search");
+    $fs.prop('checked',fileSearch);
+    if (fileSearch) {
+        vectorStores = item.tool_resources?.file_search?.vector_store_ids;
+        
+    } else {
+        vectorStores = null;
+    }
+    $vs.empty();
+    $('#vs_id').val('');
+    if (vectorStores && vectorStores.length > 0) {
+        const vs = await getVectorStore(vectorStores[0]);
+        $vs.append($(`<div class="vector-store-item"><div>${vs?.name}</div><div class="small">${vs?.id}</div></div>`));
+        $('#vs_id').val(vs.id);
+    } 
 }
 
 /**
@@ -1017,8 +1098,8 @@ function setParameters(item) {
  * @param {Array} tools - The list of tools to set.
  */
 function setFunctions(tools) {
-    enabledFunctions = new Array();
     const $functionsList = $('.functions-list');
+    const $allFunctions = $('#function-input .function-item');
     $functionsList.empty();
 
     if (Array.isArray(tools)) {
@@ -1029,18 +1110,20 @@ function setFunctions(tools) {
                     <div class="function-item">
                         <img src="svg/function.svg" alt="Function Icon" class="function-icon">
                         <span>${funcName}</span>
-                        <input type="checkbox" class="function-checkbox" id="${funcName}-checkbox" checked>
+                        <input type="checkbox" class="function-checkbox" id="${funcName}-checkbox" data-function-id="${funcName}" checked>
                     </div>
                 `);
                 $functionsList.append($functionItem);
                 
                 const $checkbox = $functionItem.find('.function-checkbox');
-                if ($checkbox.is(':checked')) {
-                    enabledFunctions.push(funcName);
-                }
+                const $allFunctionsCb = $allFunctions.find(`#fn-cb-${funcName}`);
+                if ($allFunctionsCb) $allFunctionsCb.prop('checked', $checkbox.is(':checked'));
 
                 // Add event handler for checkbox click
                 $checkbox.on('click', function () {
+                    const id = $(this).attr('data-function-id');
+                    const $cb = $(`#fn-cb-${id}`);
+                    $cb?.prop('checked', $checkbox.is(':checked'));
                     if ($(this).is(':checked')) {
                         if (enabledFunctions.indexOf(funcName) == -1) {
                             enabledFunctions.push(funcName);
@@ -1134,6 +1217,12 @@ async function saveAssistantConfiguration() {
     const topP = parseFloat(document.getElementById('top_p').value);
     const maxTokens = parseInt(document.getElementById('max_tokens').value);
     const maxThreads = parseInt(document.getElementById('max_threads').value);
+    const sqlFunctions = enabledFunctions.map(name => {
+        const match = availableFunctions.find(item => item.name === name);
+        return match ? match.function : null;
+    }).filter(Boolean);
+    const vector_store_id = Array.isArray(vectorStores) && vectorStores.length ? vectorStores[0] : null; 
+    const file_ids = !vector_store_id && fileSearch ? [] : null;
 
     if (!assistantName) {
         showFailureNotice("Assistant name cannot be empty");
@@ -1159,8 +1248,9 @@ async function saveAssistantConfiguration() {
         model: model,
         top_p: topP,
         temperature: temperature,
-        max_tokens: maxTokens,
-        max_threads: maxThreads
+        functions: sqlFunctions,
+        file_ids: file_ids,
+        vector_store_id: vector_store_id,
     };
 
     if (assistantId) {
@@ -1171,6 +1261,9 @@ async function saveAssistantConfiguration() {
     let url = new URL('/chat/api/assistants', httpBase); // Create URL for the API call
     let params = new URLSearchParams(url.search);
     params.append('apiKey', apiKey ? apiKey : '');
+    if (assistantId) {
+        params.append('assistant_id', assistantId);
+    }
     url.search = params.toString();
 
     try {
@@ -1263,6 +1356,34 @@ function loadModels() {
         .catch(error => {
             console.log('Cannot get models: ' + error + ' setting defaults');
         });
+}
+
+async function loadFunctions() {
+    try {
+        let url = new URL('/chat/api/listFunctions', httpBase);
+        let params = new URLSearchParams(url.search);
+        params.append('asst', 1);
+        url.search = params.toString();
+        const resp = await fetch (url.toString());
+        if (resp.status === 200) {
+            availableFunctions = await resp.json();
+            let $funcs = $('#function-input');
+            availableFunctions.forEach(fn => {
+                const $functionItem = $(`
+                    <div class="function-item">
+                        <img src="svg/function.svg" alt="Function Icon" class="function-icon">
+                        <label for="fn-cb-${fn.name}">${fn.title}</label>
+                        <input type="checkbox" id="fn-cb-${fn.name}" class="function-checkbox" 
+                        data-function-id="${fn.name}" data-function-name="${fn.function}">
+                    </div>
+                `);
+                $funcs.append($functionItem);
+            });
+        } else
+            showFailureNotice ('Loading helper functions failed: ' + resp.statusText);
+    } catch (e) {
+        showFailureNotice('Loading helper functions failed: ' + e);
+    }
 }
 
 async function setModel(model_id) {

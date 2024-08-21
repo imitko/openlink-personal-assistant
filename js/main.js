@@ -47,6 +47,9 @@ var chatSessionTimeoutMsec = typeof (chatSessionTimeout) != 'undefined' ? chatSe
 var animate_session = parseInt(pageParams.get('t')) || 0;
 var assistants = [];
 var models = [];
+var availableFunctions = [];
+var vectorStores = null;
+var fileSearch = false;
 
 // DOMContentLoaded Event Listener
 document.addEventListener("DOMContentLoaded", function() {
