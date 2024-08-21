@@ -156,7 +156,7 @@ async function deleteFile(thread_id, file_id, name) {
 }
 
 /**
- * Initializes the file upload modal and its related event handlers.
+ * Initializes the file upload & vector store modal and its related event handlers.
  */
 function initFileUpload() {
     // Show the file upload modal when the upload button is clicked
@@ -194,6 +194,9 @@ function initFileUpload() {
     $('#vs-input').on('change', (e) => handleVectorStoreFile(e.target.files));
 }
 
+/**
+* Detach file from vector file store
+*/
 async function removeFileFromVectorStore(file_id) {
     let url = new URL('/chat/api/vector_stores', httpBase);
     let params = new URLSearchParams(url.search);
@@ -220,6 +223,9 @@ async function removeFileFromVectorStore(file_id) {
     }
 }
 
+/**
+* Create a new vector file store
+*/
 async function createVectorStore(files) {
     let url = new URL('/chat/api/vector_stores', httpBase);
     let params = new URLSearchParams(url.search);
@@ -246,6 +252,9 @@ async function createVectorStore(files) {
     return vs_id;
 }
 
+/**
+* Add more files to existing vector file store
+*/
 async function updateVectorStore(vs_id, files) {
     let url = new URL('/chat/api/vector_stores', httpBase);
     let params = new URLSearchParams(url.search);
@@ -269,6 +278,9 @@ async function updateVectorStore(vs_id, files) {
     $('.loader').hide();
 }
 
+/**
+* UI for uploading files to assitant's file vector store
+*/
 async function handleVectorStoreFile(files) {
     let vs_id = $('#vs_id').val();
     let vsFiles = [];
@@ -322,6 +334,10 @@ async function showVectorStoreFiles() {
     }
 }
 
+/**
+* UI helper to add tr/td for vector store files list
+* perhaps should do a cache lookup to see file names etc.
+*/
 function addVectorStoreItem(file) {
     const $fileItem = $(`
                 <tr id="vsf-${file.id}">
