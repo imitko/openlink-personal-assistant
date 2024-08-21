@@ -181,7 +181,7 @@ function createMessageHTML(text, role, message_id, assistant_id = null) {
     const sender = assistant_name != null ? assistant_name : role;
 
     // Create message container with associated message_id
-    const $messageContainer = $('<div>', { class: 'chat-message', 'data-message-id': message_id });
+    const $messageContainer = $('<div>', { class: 'chat-message', 'data-message-id': message_id, 'id': message_id, });
 
     // Create message header
     const $messageHeader = $('<div>', { class: 'message-header' })
@@ -273,7 +273,12 @@ async function showConversation(items) {
     };
 
     // Scroll to the bottom of the chat
-    $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
+    if (sharedItem.length > 0 && $(sharedItem).length > 0 && !sharedSessionAnimation) {
+        $('.chat-window').scrollTop($(sharedItem).offset().top - $('.top-content-wrapper').outerHeight());
+        sharedItem = '';
+    } else {
+        $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
+    }
     $('.loader').css('display', 'none'); // Hide loader
 }
 
