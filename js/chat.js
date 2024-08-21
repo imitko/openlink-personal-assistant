@@ -245,7 +245,16 @@ async function showConversation(items) {
     const $chatMessages = $('.chat-messages');
     $chatMessages.empty(); // Clear existing messages
 
+    if (sharedSessionAnimation > 0 && !sharedItem.length) {
+        animate_session = sharedSessionAnimation;
+    }
+
     for (const item of items) {
+
+        if (sharedItem.length && '#'+item.id === sharedItem && sharedSessionAnimation > 0) {
+            animate_session = sharedSessionAnimation;
+        }
+
         if (item.role === "info") {
             continue;
         }
@@ -270,6 +279,9 @@ async function showConversation(items) {
 
 
         await new Promise(r => setTimeout(r, animate_session)); // Wait for animation delay
+        if (animate_session > 0) {
+            $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
+        }
     };
 
     // Scroll to the bottom of the chat
