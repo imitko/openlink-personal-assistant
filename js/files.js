@@ -165,6 +165,178 @@ function initFileUpload() {
     $('.close, .done-button').on('click', () => { $('#attach-files-modal').hide(); });
     // Handle file input change event
     $('#file-input').on('change', (e) => handleFileInput(e.target.files));
+    // Vector store, Assistants file-search
+    $('#vs_id').on('focusout', showVectorStoreFiles);
+    $('#vs-files-btn').on('click', async function () {
+        $('#vs-files-modal').show();
+        showVectorStoreFiles();
+    });
+    $('.close, .vs-done-button').on('click', async function (ev) {
+        const vs_id = $('#vs_id').val();
+        const $vs = $('.vector-store');
+        const $fs = $('#file-search');
+        const vs = await getVectorStore(vs_id);
+        $vs.empty();
+        vectorStores = null;
+        if (vs) {
+            vectorStores = [ vs_id ];
+            fileSearch = true;
+            $vs.append($(`<div class="vector-store-item"><div>${vs?.name}</div><div class="small">${vs_id}</div></div>`));
+        }
+        $fs.prop('checked', fileSearch);
+        $('#vs-files-modal').hide();
+    });
+    $('#vs-upload-link').on('click', () => $('#vs-input').click());
+    $('#vs_drop_zone').on('drop', (ev) => {
+        ev.preventDefault();
+     handleVectorStoreFile(ev.originalEvent.dataTransfer.files);
+    }).on('dragover', (ev) => ev.preventDefault());
+    $('#vs-input').on('change', (e) => handleVectorStoreFile(e.target.files));
+}
+
+async function removeFileFromVectorStore(file_id) {
+    let url = new URL('/chat/api/vector_stores', httpBase);
+    let params = new URLSearchParams(url.search);
+    const vs_id = $('#vs_id').val();
+    params.append('vector_store_id', vs_id);
+    params.append('file_id', file_id);
+    params.append('apiKey', apiKey ? apiKey : '');
+    url.search = params.toString();
+    $('.loader').show();
+    const rc = await authClient.fetch(url.toString(),
+        { method: 'DELETE' }).
+        then(r => {
+            if (204 != r.status) {
+                throw new Error ('Delete File from Vector Store failed:' + r.statusText);
+            }
+            return true;
+        }).catch((e) => {
+            showFailureNotice(e);
+            return false;
+        });
+    $('.loader').hide();
+    if (rc) {
+        $('#vsf-'+file_id).remove();
+    }
+}
+
+async function createVectorStore(files) {
+    let url = new URL('/chat/api/vector_stores', httpBase);
+    let params = new URLSearchParams(url.search);
+    params.append('apiKey', apiKey ? apiKey : '');
+    url.search = params.toString();
+    const request = {
+        name: currentAssistantName + ' Vector Store',
+        file_ids: files,
+        expiration: 7,
+    };
+    $('.loader').show();
+    const vs_id = await authClient.fetch(url.toString(),
+        { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(request) }).
+        then(r => {
+            if (!r.ok) {
+                throw new Error ('Create Vector Store failed:' + r.statusText);
+            }
+            return r.text();
+        }).then((id) => { return id; }).catch((e) => {
+            showFailureNotice(e);
+            return undefined;
+        });
+    $('.loader').hide();
+    return vs_id;
+}
+
+async function updateVectorStore(vs_id, files) {
+    let url = new URL('/chat/api/vector_stores', httpBase);
+    let params = new URLSearchParams(url.search);
+    params.append('vector_store_id', vs_id);
+    params.append('apiKey', apiKey ? apiKey : '');
+    url.search = params.toString();
+    const request = {
+        file_ids: files,
+    };
+    $('.loader').show();
+    await authClient.fetch(url.toString(),
+        { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(request) }).
+        then(r => {
+            if (!r.ok) {
+                throw new Error ('Create Vector Store failed:' + r.statusText);
+            }
+            return r.text();
+        }).then((id) => { return id; }).catch((e) => {
+            showFailureNotice(e);
+        });
+    $('.loader').hide();
+}
+
+async function handleVectorStoreFile(files) {
+    let vs_id = $('#vs_id').val();
+    let vsFiles = [];
+    for (let file of files) {
+        // Determine the file type
+        const fileType = getSupportedFileType(file.name);
+        if (fileType === 'application/octet-stream') {
+            showFailureNotice(`Files of type ${fileType} are not supported`);
+            return;
+        }
+        // Check if the file size exceeds the limit
+        if (file.size > 512000000) {
+            showFailureNotice(`File is too large ${file.size}, please reduce image size.`);
+            return;
+        }
+
+        $('.loader').show();
+
+        // Create a URL for the file and fetch its blob data
+        const imgURL = URL.createObjectURL(file);
+        const r = await fetch(imgURL);
+        const blob = await r.blob();
+        // Store the file on the server
+        const file_id = await storeFile(null, file.name, file.type && file.type != '' ? file.type : fileType.mime, blob);
+        vsFiles.push(file_id);
+
+        // Create a file object and add it to the selected files list
+        addVectorStoreItem({ id: file_id, bytes: file.size });
+        // Reset the file input
+        $('#vs-input').val('');
+    }
+    if (vs_id) {
+        await updateVectorStore(vs_id, vsFiles);
+    } else {
+        vs_id = await createVectorStore(vsFiles);
+        $('#vs_id').val(vs_id);
+    }
+}
+
+/**
+* Show VS files in the modal
+*/
+async function showVectorStoreFiles() {
+    const vs_id = $('#vs_id').val();
+    $('#vs-files tbody').empty();
+    if (vs_id.length) {
+        const files = await getVectorStoreFiles(vs_id);
+        files.data?.forEach(file => {
+            addVectorStoreItem({id: file.id, bytes: file.usage_bytes});
+        });
+    }
+}
+
+function addVectorStoreItem(file) {
+    const $fileItem = $(`
+                <tr id="vsf-${file.id}">
+                    <td>${file.id}</td>
+                    <td>${formatFileSize(file.bytes)}</td>
+                    <td><button class="file-upload-delete">X</button></td>
+                </tr>
+            `);
+    // Add an event handler to the delete button
+    $fileItem.find('.file-upload-delete').on('click', (e) => {
+        e.preventDefault();
+        removeFileFromVectorStore(file.id);
+    });
+    // Append the file item to the uploaded files table
+    $('#vs-files tbody').append($fileItem);
 }
 
 /**

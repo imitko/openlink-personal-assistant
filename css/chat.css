@@ -938,14 +938,14 @@ div.nano_start, div.nano_end {
   background-color: #f1f1f1;
 }
 
-#attach-files-modal .input-group {
+.attach-files-modal .input-group {
   margin-bottom: 20px;
 }
-#attach-files-modal .button-group {
+.attach-files-modal .button-group {
   display: flex;
   justify-content: flex-end;
 }
-#attach-files-modal .button {
+.attach-files-modal .button {
   background-color: #4CAF50;
   color: white;
   padding: 10px 20px;
@@ -954,10 +954,10 @@ div.nano_start, div.nano_end {
   cursor: pointer;
   border-radius: 5px;
 }
-#attach-files-modal .button:hover {
+.attach-files-modal .button:hover {
   background-color: #45a049;
 }
-#attach-files-modal .drag-drop-area {
+.attach-files-modal .drag-drop-area {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -967,12 +967,12 @@ div.nano_start, div.nano_end {
   border-radius: 10px;
   text-align: center;
 }
-#attach-files-modal .drag-drop-area img {
+.attach-files-modal .drag-drop-area img {
   width: 50px;
   height: 50px;
   margin-bottom: 10px;
 }
-#attach-files-modal #drop_zone {
+.attach-files-modal .drop_zone {
   border: 2px dashed blue;
   padding: 20px;
   border-radius: 10px;
@@ -981,18 +981,23 @@ div.nano_start, div.nano_end {
   margin: 0 auto;
 }
 
-#uploaded-files {
+.attach-files-modal .form-control {
+    width: 100%;
+    text-align: left;
+}
+
+.uploaded-files {
   margin-top: 20px;
 }
-#uploaded-files table {
+.uploaded-files table {
   width: 100%;
   border-collapse: collapse;
 }
-#uploaded-files th, #uploaded-files td {
+.uploaded-files th, .uploaded-files td {
   border: 1px solid #ddd;
   padding: 8px;
 }
-#uploaded-files th {
+.uploaded-files th {
   background-color: #f2f2f2;
   text-align: left;
 }

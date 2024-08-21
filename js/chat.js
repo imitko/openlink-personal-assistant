@@ -877,6 +877,63 @@ async function loadShare(obj_id) {
     $('.loader').hide(); // Hide loader
 }
 
+async function getVectorStoreFiles(id) {
+    let url = new URL('/chat/api/vector_stores', httpBase);
+    let params = new URLSearchParams(url.search);
+    params.append('vector_store_id', id);
+    params.append('filter', '*');
+    params.append('limit', 50);
+    params.append('apiKey', apiKey ? apiKey : '');
+    url.search = params.toString();
+    $('.loader').show();
+    const fs = await authClient.fetch (url.toString()).then((r) => {
+        if (!r.ok) {
+            return r.json().then(e => {
+                throw new Error(`${e.error}: ${e.message}`);
+            });
+            throw new Error(r.statusText);
+        }
+        return r.json();
+    }).then((data) => {
+        return data;
+    }).catch((e) => {
+        showFailureNotice('Loading messages failed: ' + e);
+    });
+    $('.loader').hide(); // Hide loader
+    return fs;
+}
+
+/**
+* Loads a vector store object by given id
+*/
+async function getVectorStore(id) {
+    if (!id) {
+        return undefined;
+    }
+    let url = new URL('/chat/api/vector_stores', httpBase);
+    let params = new URLSearchParams(url.search);
+    params.append('vector_store_id', id);
+    params.append('apiKey', apiKey ? apiKey : '');
+    url.search = params.toString();
+    $('.loader').show(); // Show loader
+    const vs = await authClient.fetch (url.toString()).then((r) => {
+        if (!r.ok) {
+            return r.json().then(e => {
+                throw new Error(`${e.error}: ${e.message}`);
+            });
+            throw new Error(r.statusText);
+        }
+        return r.json();
+    }).then((data) => {
+        return data;
+    }).catch((e) => {
+        showFailureNotice('Loading messages failed: ' + e);
+        return undefined;
+    });
+    $('.loader').hide(); // Hide loader
+    return vs;
+}
+
 /**
  * Loads the list of assistants and updates the UI.
  * 
@@ -937,6 +994,9 @@ async function loadAssistants(assistant_id = null) {
                     setAssistant(defaultAssistant.id);
                     $dropdownText.text("@Default");
                 }
+                $('#file-search').on('click', function () {
+                    fileSearch = $(this).is(':checked');
+                });
 
                 // Add the other assistants
                 otherAssistants.forEach(assistant => {
@@ -969,7 +1029,7 @@ async function loadAssistants(assistant_id = null) {
  * 
  * @param {string} assistant_id - The ID of the assistant to set.
  */
-function setAssistant(assistant_id) {
+async function setAssistant(assistant_id) {
     let item = assistants.find(obj => obj.id === assistant_id);
     if (!item) {
         return;
@@ -994,17 +1054,21 @@ function setAssistant(assistant_id) {
     setModel(item.model);
     const $fs = $('#file-search');
     const $vs = $('.vector-store');
-    if (item.tools.some(tool => tool.type === "file_search")) {
-        $fs.attr('checked',true);
-        fileSearch = item.tool_resources?.file_search?.vector_store_ids;
-        if (fileSearch.length > 0) {
-            $vs.append($(`<div class="function-item"><span>${fileSearch[0]}</span></div>`));
-        }
+    fileSearch = item.tools?.some(tool => tool.type === "file_search");
+    $fs.prop('checked',fileSearch);
+    if (fileSearch) {
+        vectorStores = item.tool_resources?.file_search?.vector_store_ids;
+        
     } else {
-        $fs.attr('checked',false);
-        fileSearch = null;
-        $vs.empty();
+        vectorStores = null;
     }
+    $vs.empty();
+    $('#vs_id').val('');
+    if (vectorStores && vectorStores.length > 0) {
+        const vs = await getVectorStore(vectorStores[0]);
+        $vs.append($(`<div class="vector-store-item"><div>${vs?.name}</div><div class="small">${vs?.id}</div></div>`));
+        $('#vs_id').val(vs.id);
+    } 
 }
 
 /**
@@ -1157,9 +1221,8 @@ async function saveAssistantConfiguration() {
         const match = availableFunctions.find(item => item.name === name);
         return match ? match.function : null;
     }).filter(Boolean);
-    // TODO: add UI to select vector store or to add files for making assistant
-    const vector_store_id = null; // single vector store id, or file_ids array
-    const file_ids = null; // if Array() will enable file search
+    const vector_store_id = Array.isArray(vectorStores) && vectorStores.length ? vectorStores[0] : null; 
+    const file_ids = !vector_store_id && fileSearch ? [] : null;
 
     if (!assistantName) {
         showFailureNotice("Assistant name cannot be empty");

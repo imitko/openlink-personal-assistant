@@ -77,7 +77,7 @@
                                 <span class="slider"></span>
                             </label>
                             <span>File search</span>
-                            <button class="files-btn">+ Files</button>
+                            <button class="files-btn" id="vs-files-btn">+ Files</button>
                         </div>
                         <div class="vector-store"></div>
                         <!--div class="tool-item">
@@ -374,17 +374,17 @@
             </div>
         </div>     
 
-        <div id="attach-files-modal" class="modal">
+        <div id="attach-files-modal" class="modal attach-files-modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
                 <h2>Attach files to file search</h2>
-                <div id="drop_zone" class="drag-drop-area">
+                <div id="drop_zone" class="drag-drop-area drop_zone">
                     <img src="svg/images.svg" alt="Upload Icon">
                     <p>Drag your files here or <a href="#" id="file-upload-link">click to upload</a></p>
                     <p>Information in attached files will be available to this thread.</p>
                     <input type="file" id="file-input" style="display: none;">
                 </div>
-                <div id="uploaded-files">
+                <div id="uploaded-files" class="uploaded-files">
                     <table>
                         <thead>
                             <tr>
@@ -403,6 +403,42 @@
                 </div>
             </div>
         </div>
+
+        <div id="vs-files-modal" class="modal attach-files-modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Attach files to Vector Store</h2>
+                <div class="contol-group">
+                    <label for="vs_id" class="h6">Vector Store Id</label>
+                    <input type="text" class="form-control" id="vs_id">
+                    <!--button class="files-btn" id="vs-fetch">Select</button-->
+                </div>
+                <div id="vs_drop_zone" class="drag-drop-area drop_zone">
+                    <img src="svg/images.svg" alt="Upload Icon">
+                    <p>Drag your files here or <a href="#" id="vs-upload-link">click to upload</a></p>
+                    <p>Information in attached files will be added to vector store.</p>
+                    <input type="file" id="vs-input" style="display: none;">
+                </div>
+                <div id="vs-files" class="uploaded-files">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Size</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Uploaded files will be displayed here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="button-group">
+                    <button class="button vs-done-button">Save</button>
+                </div>
+            </div>
+        </div>
+
 
         <div class='notice'>
             <div id="msg"></div>
