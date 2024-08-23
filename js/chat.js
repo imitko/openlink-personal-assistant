@@ -1007,18 +1007,6 @@ async function loadAssistants(assistant_id = null) {
             if (assistants.length === 0) {
                 $dropdownText.text('Create new Assistant');
             } else {
-                // Add newly created assistant
-                if (newAssistant) {
-                    const $item = $('<div class="assistants-dropdown-item"></div>').text(newAssistant.name);
-                    setAssistant(newAssistant.id);
-                    $item.on('click', function () {
-                        $('.model-configuration-fields').show();
-                        setAssistant(newAssistant.id);
-                        $dropdownText.text("@" + newAssistant.name);
-                    });
-                    $dropdownMenu.append($item);
-                }
-
                 // Add the default assistant first if it exists
                 if (defaultAssistant) {
                     const $item = $('<div class="assistants-dropdown-item"></div>').text(defaultAssistant.name);
@@ -1034,6 +1022,18 @@ async function loadAssistants(assistant_id = null) {
                     setAssistant(defaultAssistant.id);
                     $dropdownText.text("@Default");
                 }
+                // Add newly created assistant
+                if (newAssistant) {
+                    const $item = $('<div class="assistants-dropdown-item"></div>').text(newAssistant.name);
+                    setAssistant(newAssistant.id);
+                    $item.on('click', function () {
+                        $('.model-configuration-fields').show();
+                        setAssistant(newAssistant.id);
+                        $dropdownText.text("@" + newAssistant.name);
+                    });
+                    $dropdownMenu.append($item);
+                }
+
                 $('#file-search').on('click', function () {
                     fileSearch = $(this).is(':checked');
                 });
@@ -1182,16 +1182,14 @@ function setFunctions(tools) {
             const $functionItem = $(`
                 <div class="function-item">
                     <span>No Functions Available</span>
-                </div>
-            `);
+                </div>`);
             $functionsList.append($functionItem);
         }
     } else {
         const $functionItem = $(`
             <div class="function-item">
                 <span>No Functions Available</span>
-            </div>
-        `);
+            </div>`);
         $functionsList.append($functionItem);
     }
 }
