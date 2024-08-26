@@ -1141,6 +1141,8 @@ function setFunctions(tools) {
     const $functionsList = $('.functions-list');
     const $allFunctions = $('#function-input .function-item');
     $functionsList.empty();
+    enabledFunctions = [];
+    $allFunctions.find('.function-checkbox').prop('checked',false);
 
     if (Array.isArray(tools)) {
         tools.forEach(tool => {
@@ -1154,6 +1156,7 @@ function setFunctions(tools) {
                     </div>
                 `);
                 $functionsList.append($functionItem);
+                enabledFunctions.push(funcName);
                 
                 const $checkbox = $functionItem.find('.function-checkbox');
                 const $allFunctionsCb = $allFunctions.find(`#fn-cb-${funcName}`);
