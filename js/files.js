@@ -93,12 +93,13 @@ async function storeFile(thread_id, name, type, blob) {
     const url = new URL('/chat/api/files', httpBase);
     const params = new URLSearchParams(url.search);
     const formData = new FormData();
+    const purpose = type.startsWith('image/') ? 'vision' : 'assistants';
     // Append necessary parameters to the URL and form data
     params.append('thread_id', thread_id);
     formData.append('apiKey', apiKey || '');
     formData.append('name', name);
     formData.append('format', type);
-    formData.append('purpose', 'assistants');
+    formData.append('purpose', purpose);
     formData.append('data', blob);
 
     url.search = params.toString();
@@ -398,7 +399,8 @@ async function handleFileInput(files) {
         // Create a file object and add it to the selected files list
         const fileObj = {
             id: file_id, 
-            data: file
+            data: file,
+            type: file.type && file.type != '' ? file.type : fileType.mime,
         };
 
         selectedFiles.push(fileObj);

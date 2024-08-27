@@ -385,7 +385,7 @@ async function sendMessage(prompt_id, text, thread_id = currentThread, assistant
     $('.loader').css('display', 'block'); // Show loader
     if (!checkApiKey()) return; // Check if API key is valid
 
-    let images = new Array();
+    let images = selectedFiles.filter(f => f.type.startsWith('image/')).map(f => f.id);
     let image_resolution = 'low';
     let sqlFunctions = enabledFunctions.map(name => {
         const match = availableFunctions.find(item => item.name === name);
@@ -406,7 +406,7 @@ async function sendMessage(prompt_id, text, thread_id = currentThread, assistant
             image_resolution: image_resolution,
             max_tokens: max_tokens,
             functions: sqlFunctions,
-            files: selectedFiles.map(fileObj => fileObj.id),
+            files: selectedFiles.filter(fileObj => !fileObj.type.startsWith('image/')).map(fileObj => fileObj.id),
         };
         webSocket.send(JSON.stringify(request)); // Send request via WebSocket
     } else {
