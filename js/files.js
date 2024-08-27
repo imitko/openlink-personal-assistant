@@ -93,12 +93,13 @@ async function storeFile(thread_id, name, type, blob) {
     const url = new URL('/chat/api/files', httpBase);
     const params = new URLSearchParams(url.search);
     const formData = new FormData();
+    const purpose = type.startsWith('image/') ? 'vision' : 'assistants';
     // Append necessary parameters to the URL and form data
     params.append('thread_id', thread_id);
     formData.append('apiKey', apiKey || '');
     formData.append('name', name);
     formData.append('format', type);
-    formData.append('purpose', 'assistants');
+    formData.append('purpose', purpose);
     formData.append('data', blob);
 
     url.search = params.toString();
@@ -156,7 +157,7 @@ async function deleteFile(thread_id, file_id, name) {
 }
 
 /**
- * Initializes the file upload modal and its related event handlers.
+ * Initializes the file upload & vector store modal and its related event handlers.
  */
 function initFileUpload() {
     // Show the file upload modal when the upload button is clicked
@@ -194,6 +195,9 @@ function initFileUpload() {
     $('#vs-input').on('change', (e) => handleVectorStoreFile(e.target.files));
 }
 
+/**
+* Detach file from vector file store
+*/
 async function removeFileFromVectorStore(file_id) {
     let url = new URL('/chat/api/vector_stores', httpBase);
     let params = new URLSearchParams(url.search);
@@ -220,6 +224,9 @@ async function removeFileFromVectorStore(file_id) {
     }
 }
 
+/**
+* Create a new vector file store
+*/
 async function createVectorStore(files) {
     let url = new URL('/chat/api/vector_stores', httpBase);
     let params = new URLSearchParams(url.search);
@@ -246,6 +253,9 @@ async function createVectorStore(files) {
     return vs_id;
 }
 
+/**
+* Add more files to existing vector file store
+*/
 async function updateVectorStore(vs_id, files) {
     let url = new URL('/chat/api/vector_stores', httpBase);
     let params = new URLSearchParams(url.search);
@@ -269,6 +279,9 @@ async function updateVectorStore(vs_id, files) {
     $('.loader').hide();
 }
 
+/**
+* UI for uploading files to assitant's file vector store
+*/
 async function handleVectorStoreFile(files) {
     let vs_id = $('#vs_id').val();
     let vsFiles = [];
@@ -322,6 +335,10 @@ async function showVectorStoreFiles() {
     }
 }
 
+/**
+* UI helper to add tr/td for vector store files list
+* perhaps should do a cache lookup to see file names etc.
+*/
 function addVectorStoreItem(file) {
     const $fileItem = $(`
                 <tr id="vsf-${file.id}">
@@ -382,7 +399,8 @@ async function handleFileInput(files) {
         // Create a file object and add it to the selected files list
         const fileObj = {
             id: file_id, 
-            data: file
+            data: file,
+            type: file.type && file.type != '' ? file.type : fileType.mime,
         };
 
         selectedFiles.push(fileObj);

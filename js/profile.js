@@ -70,9 +70,13 @@ async function loadProfile(webId) {
         // RDF parsing and querying for non-HTML content
         const store = $rdf.graph(); // Create RDF graph
         $rdf.parse(bodyText, store, base, mediaType); // Parse RDF data
-
         // Define RDF namespaces
-        const [LDP, PIM, SOLID, FOAF] = ["http://www.w3.org/ns/ldp#", "http://www.w3.org/ns/pim/space#", "http://www.w3.org/ns/solid/terms#", "http://xmlns.com/foaf/0.1/"].map($rdf.Namespace);
+        const LDP = $rdf.Namespace("http://www.w3.org/ns/ldp#");
+        const PIM = $rdf.Namespace("http://www.w3.org/ns/pim/space#");
+        const SOLID = $rdf.Namespace("http://www.w3.org/ns/solid/terms#");
+        const FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
+
+        // XXX: this optimization not work well const [LDP, PIM, SOLID, FOAF] = ["http://www.w3.org/ns/ldp#", "http://www.w3.org/ns/pim/space#", "http://www.w3.org/ns/solid/terms#", "http://xmlns.com/foaf/0.1/"].map($rdf.Namespace);
         const s_webId = $rdf.sym(webId); // RDF symbol for WebID
 
         // Query RDF store for specific properties

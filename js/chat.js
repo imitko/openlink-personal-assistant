@@ -181,7 +181,7 @@ function createMessageHTML(text, role, message_id, assistant_id = null) {
     const sender = assistant_name != null ? assistant_name : role;
 
     // Create message container with associated message_id
-    const $messageContainer = $('<div>', { class: 'chat-message', 'data-message-id': message_id });
+    const $messageContainer = $('<div>', { class: 'chat-message', 'data-message-id': message_id, 'id': message_id, });
 
     // Create message header
     const $messageHeader = $('<div>', { class: 'message-header' })
@@ -245,7 +245,16 @@ async function showConversation(items) {
     const $chatMessages = $('.chat-messages');
     $chatMessages.empty(); // Clear existing messages
 
+    if (sharedSessionAnimation > 0 && !sharedItem.length) {
+        animate_session = sharedSessionAnimation;
+    }
+
     for (const item of items) {
+
+        if (sharedItem.length && '#'+item.id === sharedItem && sharedSessionAnimation > 0) {
+            animate_session = sharedSessionAnimation;
+        }
+
         if (item.role === "info") {
             continue;
         }
@@ -270,10 +279,18 @@ async function showConversation(items) {
 
 
         await new Promise(r => setTimeout(r, animate_session)); // Wait for animation delay
+        if (animate_session > 0) {
+            $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
+        }
     };
 
     // Scroll to the bottom of the chat
-    $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
+    if (sharedItem.length > 0 && $(sharedItem).length > 0 && !sharedSessionAnimation) {
+        $('.chat-window').scrollTop($(sharedItem).offset().top - $('.top-content-wrapper').outerHeight());
+        sharedItem = '';
+    } else {
+        $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
+    }
     $('.loader').css('display', 'none'); // Hide loader
 }
 
@@ -289,6 +306,7 @@ function addMessageToUI(message_id, role, text, assistant_id = null) {
     const $messageContainer = createMessageHTML(text, role, message_id, assistant_id); // Create message HTML
     $('.chat-messages').append($messageContainer); // Append message to chat
     $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300); // Scroll to the bottom
+    return $messageContainer;
 }
 
 function addFileToUI(message_id, name, role, dataUrl = null) {
@@ -367,7 +385,7 @@ async function sendMessage(prompt_id, text, thread_id = currentThread, assistant
     $('.loader').css('display', 'block'); // Show loader
     if (!checkApiKey()) return; // Check if API key is valid
 
-    let images = new Array();
+    let images = selectedFiles.filter(f => f.type.startsWith('image/')).map(f => f.id);
     let image_resolution = 'low';
     let sqlFunctions = enabledFunctions.map(name => {
         const match = availableFunctions.find(item => item.name === name);
@@ -388,7 +406,7 @@ async function sendMessage(prompt_id, text, thread_id = currentThread, assistant
             image_resolution: image_resolution,
             max_tokens: max_tokens,
             functions: sqlFunctions,
-            files: selectedFiles.map(fileObj => fileObj.id),
+            files: selectedFiles.filter(fileObj => !fileObj.type.startsWith('image/')).map(fileObj => fileObj.id),
         };
         webSocket.send(JSON.stringify(request)); // Send request via WebSocket
     } else {
@@ -404,29 +422,51 @@ async function sendMessage(prompt_id, text, thread_id = currentThread, assistant
 function readMessage(input) {
     $('.loader').css('display', 'block'); // Show loader
     const obj = JSON.parse(input);
-    const text = obj.data;
-    const dataUrl = obj.dataUrl
-    const name = obj.name
-    const assistant_id = currentAssistant;
+    let kind = obj.kind;
+    let text = obj.data;
+    let dataUrl = obj.data?.dataUrl;
+    let name = obj.name;
+    let assistant_id = currentAssistant;
+
+    if (typeof(text) === 'object') {
+        text = '';
+    }
 
     if (dataUrl) {
         addFileToUI(messageId, name, "file", dataUrl);
-    }
-
-    else if (text === '[DONE]' || text === '[LENGTH]') {
-        // End of the message, display accumulated message
-        if (accumulatedMessage) {
-            addMessageToUI(lastReadMessageId, 'Assistant', accumulatedMessage, assistant_id);
-            accumulatedMessage = ''; // Reset the accumulated message
+    } else if ('function' === kind || 'tool' === kind) {
+        let func_call = JSON.parse (text);
+        let title = '**Function: ' + func_call.func_title + '** ('+ func_call.func + ')';
+        let div = title + '\n*Arguments:*\n```json\n' + func_call.func_args + '\n```';
+        addMessageToUI(obj.message_id, 'Function', div, assistant_id)
+    } else if ('function_response' === kind) {
+        addMessageToUI(obj.message_id, 'Function', '**Result:**\n```\n'+text+'\n```', assistant_id)
+    } else if ('authentication' === kind) {
+        // TODO: tool authentication needed, see v1
+    } else if ('info' === kind) {
+        if (obj.data.run_id) {
+            currentRunId = obj.data.run_id;
         }
+    } else if ('message_id' === kind) {
+        $('#'+obj.prompt_id).attr('id', obj.message_id); // set user prompt id
+    } else if (text === '[DONE]' || text === '[LENGTH]') {
+        // End of the message
+        accumulatedMessage = ''; // Reset the accumulated message
+        receivingMessage = null;
         $('.loader').css('display', 'none'); // Hide loader
         return;
-    }
-
-    else if (!text.run_id) {
-        // Accumulate the message parts
-        accumulatedMessage += text;
+    } else if (!text.run_id) {
         lastReadMessageId = obj.message_id;
+        accumulatedMessage += text;
+        if (!receivingMessage) {
+            let $container = addMessageToUI(obj.message_id, 'Assistant', accumulatedMessage, assistant_id);
+            receivingMessage = $container.find('.message-body');
+        } else {
+            receivingMessage.html(md.render(accumulatedMessage));
+        }
+        if (-1 != text.indexOf('\n')) {
+            $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
+        }
     }
 }
 
@@ -967,18 +1007,6 @@ async function loadAssistants(assistant_id = null) {
             if (assistants.length === 0) {
                 $dropdownText.text('Create new Assistant');
             } else {
-                // Add newly created assistant
-                if (newAssistant) {
-                    const $item = $('<div class="assistants-dropdown-item"></div>').text(newAssistant.name);
-                    setAssistant(newAssistant.id);
-                    $item.on('click', function () {
-                        $('.model-configuration-fields').show();
-                        setAssistant(newAssistant.id);
-                        $dropdownText.text("@" + newAssistant.name);
-                    });
-                    $dropdownMenu.append($item);
-                }
-
                 // Add the default assistant first if it exists
                 if (defaultAssistant) {
                     const $item = $('<div class="assistants-dropdown-item"></div>').text(defaultAssistant.name);
@@ -994,6 +1022,18 @@ async function loadAssistants(assistant_id = null) {
                     setAssistant(defaultAssistant.id);
                     $dropdownText.text("@Default");
                 }
+                // Add newly created assistant
+                if (newAssistant) {
+                    const $item = $('<div class="assistants-dropdown-item"></div>').text(newAssistant.name);
+                    setAssistant(newAssistant.id);
+                    $item.on('click', function () {
+                        $('.model-configuration-fields').show();
+                        setAssistant(newAssistant.id);
+                        $dropdownText.text("@" + newAssistant.name);
+                    });
+                    $dropdownMenu.append($item);
+                }
+
                 $('#file-search').on('click', function () {
                     fileSearch = $(this).is(':checked');
                 });
@@ -1101,6 +1141,8 @@ function setFunctions(tools) {
     const $functionsList = $('.functions-list');
     const $allFunctions = $('#function-input .function-item');
     $functionsList.empty();
+    enabledFunctions = [];
+    $allFunctions.find('.function-checkbox').prop('checked',false);
 
     if (Array.isArray(tools)) {
         tools.forEach(tool => {
@@ -1114,6 +1156,7 @@ function setFunctions(tools) {
                     </div>
                 `);
                 $functionsList.append($functionItem);
+                enabledFunctions.push(funcName);
                 
                 const $checkbox = $functionItem.find('.function-checkbox');
                 const $allFunctionsCb = $allFunctions.find(`#fn-cb-${funcName}`);
@@ -1142,16 +1185,14 @@ function setFunctions(tools) {
             const $functionItem = $(`
                 <div class="function-item">
                     <span>No Functions Available</span>
-                </div>
-            `);
+                </div>`);
             $functionsList.append($functionItem);
         }
     } else {
         const $functionItem = $(`
             <div class="function-item">
                 <span>No Functions Available</span>
-            </div>
-        `);
+            </div>`);
         $functionsList.append($functionItem);
     }
 }

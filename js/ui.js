@@ -9,7 +9,9 @@ function initUI() {
     $('.model-configuration-fields').hide();
 
     document.getElementById('delete-assistant').addEventListener('click', function() {
-        deleteAssistant(document.querySelector('.assistant-id.field-id').textContent);
+        if(confirm('The assistant will be deleted, and operation cannot be undone, please confirm')) {
+            deleteAssistant(document.querySelector('.assistant-id.field-id').textContent);
+        }
     });
 
     // Event listener for the Save button
