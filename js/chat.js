@@ -344,7 +344,7 @@ function addMessageToUI(message_id, role, text, assistant_id = null) {
 function addFileToUI(message_id, name, role, dataUrl = null) {
     let $messageContainer = undefined
     if (dataUrl) {
-        $messageContainer = createFileHTML(message_id, name, role); // Create message HTML
+        $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
     } else {
         $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
     }
@@ -395,7 +395,12 @@ async function handleUserInput() {
     // Add file
     selectedFiles.forEach(fileObj => {
         const file = fileObj.data;
-        addFileToUI(message_id, file.name, "file")
+        const role = fileObj.type.startsWith('image/') ? "image" : "file";
+        let dataUrl = null;
+        if ('image' === role) {
+            dataUrl = URL.createObjectURL(file);
+        }
+        addFileToUI(message_id, file.name, role, dataUrl)
     });
 
     // clear file list

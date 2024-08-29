@@ -445,12 +445,22 @@ function displaySelectedFiles() {
     // Iterate through the selected files and create file items
     selectedFiles.forEach(fileObj => {
         const file = fileObj.data;
-        const $fileItem = $(`
-        <div class="file-upload-item">
-            <img class="file-upload-item-img" src="svg/file-upload-img.jpeg" title="${file.name}">
-            <button class="file-upload-delete">X</button>
-        </div>
-        `);
+        let $fileItem;
+        if (fileObj.type.startsWith('image/')) {
+            let imgURL = URL.createObjectURL(file);
+            $fileItem = 
+            $(`<div class="file-upload-item">
+                <img class="file-upload-item-img" src="${imgURL}" title="${file.name}">
+                <button class="file-upload-delete"><img src="svg/x.svg"/></button>
+              </div>`);
+        } else {
+            $fileItem = 
+            $(`<div class="file-upload-item">
+                <img class="file-upload-item-img" src="svg/file-upload-img.jpeg" title="${file.name}">
+                <label>${file.name}</label>
+                <button class="file-upload-delete"><img src="svg/x.svg"/></button>
+              </div>`);
+        }
 
         // Add an event handler to the delete button
         $fileItem.find('.file-upload-delete').on('click', () => {
