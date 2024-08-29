@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="ASCII"?>
+<!DOCTYPE sticker SYSTEM "vad_sticker.dtd">
+<sticker version="1.0.010505A" xml:lang="en-UK">
+<caption>
+  <name package="opal_assistant_skin">
+    <prop name="Title" value="Personal Assistant Interface (Metal)"/>
+    <prop name="Developer" value="OpenLink Software"/>
+    <prop name="Copyright" value="(C) 2024 OpenLink Software"/>
+    <prop name="Download" value="https://virtuoso.openlinksw.com/"/>
+  </name>
+  <version package="$VERSION$">
+    <prop name="Release Date" value="$PACKDATE$"/>
+    <prop name="Build" value="Release, optimized"/>
+  </version>
+</caption>
+<dependencies>
+    <require>
+        <name package="personal_assistant"/>
+        <versions_later package="1.1_git258">
+            <prop name="Date" value="2024-08-25 12:11" />
+            <prop name="Comment" value="An incompatible version of the Personal Assistant" />
+        </versions_later>
+    </require>
+</dependencies>
+<procedures uninstallation="supported">
+  <sql purpose="pre-install"><![CDATA[
+    if (lt (sys_stat ('st_dbms_ver'), '$NEED_VERSION$'))
+      {
+         result ('ERROR', 'The OpenLink Personal Assistant package requires server version $NEED_VERSION$ or greater');
+         signal ('FATAL', 'The OpenLink Personal Assistant package requires server version $NEED_VERSION$ or greater');
+      }
+  ]]></sql>
+  <sql purpose="post-install"></sql>
+</procedures>
+<ddls>
+  <sql purpose="post-install">
+    <![CDATA[
+          DB.DBA.VHOST_REMOVE (lpath=>'/opal-m');
+          DB.DBA.VHOST_DEFINE (lpath=>'/opal-m', ppath=>'$BASE_PATH$/opal_assistant_skin/', is_dav=>$ISDAV$, def_page=>'index.html');
+    ]]>
+  </sql>
+  <sql purpose='pre-uninstall'>
+  </sql>
+</ddls>
+<resources>
+    <file type="$TYPE$" source_uri="index.html" target_uri="opal_assistant_skin/" />
+    <file type="$TYPE$" source_uri="version.js" target_uri="opal_assistant_skin/" />
+    <file type="$TYPE$" source_uri="svg/*.*" target_uri="opal_assistant_skin/" />
+    <file type="$TYPE$" source_uri="lib/*.js" target_uri="opal_assistant_skin/" />
+    <file type="$TYPE$" source_uri="js/*.js" target_uri="opal_assistant_skin/" />
+    <file type="$TYPE$" source_uri="css/*.css" target_uri="opal_assistant_skin/" />
+</resources>
+<registry>
+</registry>
+</sticker>
