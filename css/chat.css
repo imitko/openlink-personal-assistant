@@ -1031,3 +1031,7 @@ div.nano_start, div.nano_end {
 #audio-field-label {
   margin: 0;
 }
+
+.user-img-zoom-in , .user-img-zoom-out {
+    float: right;
+}

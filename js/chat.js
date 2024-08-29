@@ -216,14 +216,37 @@ function createFileHTML(message_id, name, role, dataUrl = null) {
     // Check if dataUrl is null
     if (dataUrl) {
         // Create anchor element with name as text and dataUrl as href
-        const $link = $('<a>', {
-            href: dataUrl,
-            target: '_blank',
-            text: name,
-            referrerpolicy: 'origin'
-        });
-        // Append the link to the message body
-        $messageBody.append($link);
+        if ('image' === role) {
+            const $img = $('<img>', { src: dataUrl, height: '128px', class: 'user-img-src' });
+            const $zoom_in = $('<div class="user-img-zoom-in"><img src="svg/zoom-in.svg"/></div>');
+            const $zoom_out = $('<div class="user-img-zoom-out"><img src="svg/zoom-out.svg"/></div>');
+            $zoom_in.on('click', function (e) {
+                  let $img = $(this).parent().find('.user-img-src');
+                  let height = $img.height();
+                  height += 50;
+                  if (height >= 480) return;
+                  $img.height(height);
+              });
+            $zoom_out.on('click', function (e) {
+                  let $img = $(this).parent().find('.user-img-src');
+                  let height = $img.height();
+                  height -= 50;
+                  if (height <= 120) return;
+                  $img.height(height);
+              });
+            $messageBody.append($zoom_in);
+            $messageBody.append($zoom_out);
+            $messageBody.append($img);
+        } else {
+            const $link = $('<a>', {
+                href: dataUrl,
+                target: '_blank',
+                text: name,
+                referrerpolicy: 'origin'
+            });
+            // Append the link to the message body
+            $messageBody.append($link);
+        }
     } else {
         // Create a text node with name
         $messageBody.text(name);
@@ -260,6 +283,15 @@ async function showConversation(items) {
         }
 
         else if (item.role === "file") {
+            let role = item.role;
+            let message_id = item.id;
+            let name = item.name;
+            let dataUrl = item.dataUrl
+            const $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
+            $chatMessages.append($messageContainer); // Append message to chat
+        }
+
+        else if (item.role === "image") {
             let role = item.role;
             let message_id = item.id;
             let name = item.name;
