@@ -302,17 +302,24 @@ async function showConversation(items) {
 
         else {
             let role = item.role;
-            let text = item.text;
+            let animate = (animate_session > 0 && 'assistant' === role);
+            let text = animate ? '' : item.text;
             let message_id = item.id;
             let assistant_id = item.assistant_id;
-            const $messageContainer = createMessageHTML(text, role, message_id, assistant_id); // Create message HTML
+            let $messageContainer = createMessageHTML(text, role, message_id, assistant_id); // Create message HTML
             $chatMessages.append($messageContainer); // Append message to chat
-        }
-
-
-        await new Promise(r => setTimeout(r, animate_session)); // Wait for animation delay
-        if (animate_session > 0) {
-            $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
+            if (animate) { // Animate like teletype the assistant streaming reply
+                let $messageBody = $messageContainer.find('.message-body');
+                let index = 0;
+                let content = item.text.split(' ');
+                for (index = 0; index < content.length; index++) {
+                    $messageBody.html(md.render(content.slice(0, index + 1).join(' ')));
+                    await new Promise(r => setTimeout(r, Math.random() * animate_session));
+                    if(-1 != content[index].indexOf('\n')) {
+                        $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
+                    }
+                }
+            }
         }
     };
 
@@ -348,7 +355,7 @@ function addFileToUI(message_id, name, role, dataUrl = null) {
     } else {
         $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
     }
-    
+
     $('.chat-messages').append($messageContainer); // Append message to chat
     $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300); // Scroll to the bottom
 }
@@ -359,7 +366,7 @@ function addFileToUI(message_id, name, role, dataUrl = null) {
 async function handleUserInput() {
     $('.loader').show();// Show loader
     if (!checkApiKey()) return; // Check if API key is valid
-    
+
     const $textarea = $('#user-input');
     const text = $textarea.val().trim(); // Get and trim user input
 
@@ -373,14 +380,14 @@ async function handleUserInput() {
     const message_id = Math.random().toString(36).replace('0.', 'usr-');
 
     if (currentModel == undefined) {
-        addMessageToUI(message_id, 'Assistant', "Cannot send message without model selected"); 
+        addMessageToUI(message_id, 'Assistant', "Cannot send message without model selected");
         $('.loader').hide();
         // Show error if no model is selected
         return;
     }
 
     if (currentAssistant == undefined) {
-        addMessageToUI(message_id, 'Assistant', "Cannot send message without assistant selected"); 
+        addMessageToUI(message_id, 'Assistant', "Cannot send message without assistant selected");
         $('.loader').hide();
         // Show error if no assistant is selected
         return;
