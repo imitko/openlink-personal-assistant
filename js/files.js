@@ -230,10 +230,11 @@ async function removeFileFromVectorStore(file_id) {
 async function createVectorStore(files) {
     let url = new URL('/chat/api/vector_stores', httpBase);
     let params = new URLSearchParams(url.search);
+    let prefix = currentAssistantName ? currentAssistantName : $('#assistant-name').val();
     params.append('apiKey', apiKey ? apiKey : '');
     url.search = params.toString();
     const request = {
-        name: currentAssistantName + ' Vector Store',
+        name: prefix + ' Vector Store',
         file_ids: files,
         expiration: 7,
     };
