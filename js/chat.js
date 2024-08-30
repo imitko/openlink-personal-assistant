@@ -143,6 +143,7 @@ async function checkResumeThread() {
 async function loadConversation(thread_id) {
     $('.loader').css('display', 'block'); // Show loader
     if (!checkApiKey()) return; // Check if API key is valid
+    if (!thread_id) return; // No thread yet XXX: make new?
 
     let url = new URL('/chat/api/messages', httpBase);
     let params = new URLSearchParams(url.search);
@@ -1025,12 +1026,13 @@ async function getVectorStore(id) {
  */
 async function loadAssistants(assistant_id = null) {
     if (!loggedIn) return; // Exit if not logged in
+    if (!checkApiKey()) return; // Check if API key is valid
     $('.loader').css('display', 'block'); // Show loader
 
     try {
         // Construct URL with query parameters
         const url = new URL('/chat/api/assistants', httpBase);
-        url.search = new URLSearchParams({ detail: 1 }).toString();
+        url.search = new URLSearchParams({ detail: 1, apiKey: apiKey ? apiKey : '' }).toString();
 
         const resp = await authClient.fetch(url.toString()); // Fetch chat list
 
@@ -1361,12 +1363,11 @@ async function saveAssistantConfiguration() {
             const data = await response.json();
             await loadAssistants(data);
             showSuccessNotice("Assistant configuration saved.")
-            // TODO: it returns an assistant id. Use this id to reload assistants and then set that as the active assistant
         } else {
-            showFailureNotice('Error saving assistant configuration:', response.status, response.statusText);
+            throw new Error (response.statusText);
         }
     } catch (error) {
-        showFailureNotice('Error saving assistant configuration:', error);
+        showFailureNotice('Error saving assistant configuration: ' + error.message);
     }
 }
 

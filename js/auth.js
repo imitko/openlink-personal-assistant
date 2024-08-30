@@ -23,7 +23,7 @@ function initAuthentication() {
         $('.login-button').toggleClass('hidden', loggedIn);
         $('.logout-button').toggleClass('hidden', !loggedIn);
         updateLoginState();
-    }).catch ((e) => { showNotice ('Failed to restore session: '+e); });
+    }).catch ((e) => { showFailureNotice ('Failed to restore session: '+e); });
 
     $('.continue-button').click(function (e) {
         let url = new URL(window.location.href);
@@ -97,7 +97,9 @@ async function chatAuthenticate() {
         if (apiKeyRequired) {
             apiKey = localStorage.getItem('openlinksw.com:opal:gpt-api-key');
             $('#api-key').val(apiKey);
-            if (!apiKey || apiKey.length < 1) $('#api-key-modal').modal('show');
+            if (!apiKey || apiKey.length < 1) {
+                $('#api-key-modal').show();
+            }
         }
     } catch (e) {
         logoutOnError = true;
@@ -136,7 +138,6 @@ async function updateLoginState() {
         $('#api-key-modal-btn').show(); // Show API key modal button
 
         await loadThreads();
-        await loadAssistants();
         await loadModels();
         await loadFunctions();
   

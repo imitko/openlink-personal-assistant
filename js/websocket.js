@@ -6,8 +6,8 @@
  */
 onOpen = function(event) {
     chatAuthenticate().then(() => {
-        if (!apiKeyRequired && currentThread) {
-            checkResumeThread().then(() => { loadConversation(currentThread); });
+        if (!apiKeyRequired || apiKey) {
+            checkResumeThread().then(() => { loadAssistants(); }).then(() => { loadConversation(currentThread); });
         }
     });
 };
