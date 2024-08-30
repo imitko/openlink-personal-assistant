@@ -230,10 +230,11 @@ async function removeFileFromVectorStore(file_id) {
 async function createVectorStore(files) {
     let url = new URL('/chat/api/vector_stores', httpBase);
     let params = new URLSearchParams(url.search);
+    let prefix = currentAssistantName ? currentAssistantName : $('#assistant-name').val();
     params.append('apiKey', apiKey ? apiKey : '');
     url.search = params.toString();
     const request = {
-        name: currentAssistantName + ' Vector Store',
+        name: prefix + ' Vector Store',
         file_ids: files,
         expiration: 7,
     };
@@ -445,12 +446,22 @@ function displaySelectedFiles() {
     // Iterate through the selected files and create file items
     selectedFiles.forEach(fileObj => {
         const file = fileObj.data;
-        const $fileItem = $(`
-        <div class="file-upload-item">
-            <img class="file-upload-item-img" src="svg/file-upload-img.jpeg" title="${file.name}">
-            <button class="file-upload-delete">X</button>
-        </div>
-        `);
+        let $fileItem;
+        if (fileObj.type.startsWith('image/')) {
+            let imgURL = URL.createObjectURL(file);
+            $fileItem = 
+            $(`<div class="file-upload-item">
+                <img class="file-upload-item-img" src="${imgURL}" title="${file.name}">
+                <button class="file-upload-delete"><img src="svg/x.svg"/></button>
+              </div>`);
+        } else {
+            $fileItem = 
+            $(`<div class="file-upload-item">
+                <img class="file-upload-item-img" src="svg/file-upload-img.jpeg" title="${file.name}">
+                <label>${file.name}</label>
+                <button class="file-upload-delete"><img src="svg/x.svg"/></button>
+              </div>`);
+        }
 
         // Add an event handler to the delete button
         $fileItem.find('.file-upload-delete').on('click', () => {

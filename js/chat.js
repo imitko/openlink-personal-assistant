@@ -216,14 +216,37 @@ function createFileHTML(message_id, name, role, dataUrl = null) {
     // Check if dataUrl is null
     if (dataUrl) {
         // Create anchor element with name as text and dataUrl as href
-        const $link = $('<a>', {
-            href: dataUrl,
-            target: '_blank',
-            text: name,
-            referrerpolicy: 'origin'
-        });
-        // Append the link to the message body
-        $messageBody.append($link);
+        if ('image' === role) {
+            const $img = $('<img>', { src: dataUrl, height: '128px', class: 'user-img-src' });
+            const $zoom_in = $('<div class="user-img-zoom-in"><img src="svg/zoom-in.svg"/></div>');
+            const $zoom_out = $('<div class="user-img-zoom-out"><img src="svg/zoom-out.svg"/></div>');
+            $zoom_in.on('click', function (e) {
+                  let $img = $(this).parent().find('.user-img-src');
+                  let height = $img.height();
+                  height += 50;
+                  if (height >= 480) return;
+                  $img.height(height);
+              });
+            $zoom_out.on('click', function (e) {
+                  let $img = $(this).parent().find('.user-img-src');
+                  let height = $img.height();
+                  height -= 50;
+                  if (height <= 120) return;
+                  $img.height(height);
+              });
+            $messageBody.append($zoom_in);
+            $messageBody.append($zoom_out);
+            $messageBody.append($img);
+        } else {
+            const $link = $('<a>', {
+                href: dataUrl,
+                target: '_blank',
+                text: name,
+                referrerpolicy: 'origin'
+            });
+            // Append the link to the message body
+            $messageBody.append($link);
+        }
     } else {
         // Create a text node with name
         $messageBody.text(name);
@@ -268,19 +291,35 @@ async function showConversation(items) {
             $chatMessages.append($messageContainer); // Append message to chat
         }
 
-        else {
+        else if (item.role === "image") {
             let role = item.role;
-            let text = item.text;
             let message_id = item.id;
-            let assistant_id = item.assistant_id;
-            const $messageContainer = createMessageHTML(text, role, message_id, assistant_id); // Create message HTML
+            let name = item.name;
+            let dataUrl = item.dataUrl
+            const $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
             $chatMessages.append($messageContainer); // Append message to chat
         }
 
-
-        await new Promise(r => setTimeout(r, animate_session)); // Wait for animation delay
-        if (animate_session > 0) {
-            $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
+        else {
+            let role = item.role;
+            let animate = (animate_session > 0 && 'assistant' === role);
+            let text = animate ? '' : item.text;
+            let message_id = item.id;
+            let assistant_id = item.assistant_id;
+            let $messageContainer = createMessageHTML(text, role, message_id, assistant_id); // Create message HTML
+            $chatMessages.append($messageContainer); // Append message to chat
+            if (animate) { // Animate like teletype the assistant streaming reply
+                let $messageBody = $messageContainer.find('.message-body');
+                let index = 0;
+                let content = item.text.split(' ');
+                for (index = 0; index < content.length; index++) {
+                    $messageBody.html(md.render(content.slice(0, index + 1).join(' ')));
+                    await new Promise(r => setTimeout(r, Math.random() * animate_session));
+                    if(-1 != content[index].indexOf('\n')) {
+                        $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
+                    }
+                }
+            }
         }
     };
 
@@ -312,11 +351,11 @@ function addMessageToUI(message_id, role, text, assistant_id = null) {
 function addFileToUI(message_id, name, role, dataUrl = null) {
     let $messageContainer = undefined
     if (dataUrl) {
-        $messageContainer = createFileHTML(message_id, name, role); // Create message HTML
+        $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
     } else {
         $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
     }
-    
+
     $('.chat-messages').append($messageContainer); // Append message to chat
     $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300); // Scroll to the bottom
 }
@@ -327,7 +366,7 @@ function addFileToUI(message_id, name, role, dataUrl = null) {
 async function handleUserInput() {
     $('.loader').show();// Show loader
     if (!checkApiKey()) return; // Check if API key is valid
-    
+
     const $textarea = $('#user-input');
     const text = $textarea.val().trim(); // Get and trim user input
 
@@ -341,14 +380,14 @@ async function handleUserInput() {
     const message_id = Math.random().toString(36).replace('0.', 'usr-');
 
     if (currentModel == undefined) {
-        addMessageToUI(message_id, 'Assistant', "Cannot send message without model selected"); 
+        addMessageToUI(message_id, 'Assistant', "Cannot send message without model selected");
         $('.loader').hide();
         // Show error if no model is selected
         return;
     }
 
     if (currentAssistant == undefined) {
-        addMessageToUI(message_id, 'Assistant', "Cannot send message without assistant selected"); 
+        addMessageToUI(message_id, 'Assistant', "Cannot send message without assistant selected");
         $('.loader').hide();
         // Show error if no assistant is selected
         return;
@@ -363,7 +402,12 @@ async function handleUserInput() {
     // Add file
     selectedFiles.forEach(fileObj => {
         const file = fileObj.data;
-        addFileToUI(message_id, file.name, "file")
+        const role = fileObj.type.startsWith('image/') ? "image" : "file";
+        let dataUrl = null;
+        if ('image' === role) {
+            dataUrl = URL.createObjectURL(file);
+        }
+        addFileToUI(message_id, file.name, role, dataUrl)
     });
 
     // clear file list
