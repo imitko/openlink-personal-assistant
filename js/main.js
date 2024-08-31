@@ -15,7 +15,7 @@ var targetHost = typeof(httpServer) != 'undefined' ? new URL(httpServer).host : 
 var getMessageText, sendMessage, onOpen, onMessage, onError, onClose, webSocket, readMessage;
 var httpBase = 'https://' + targetHost;
 var wsApiUrl = typeof(wsServer) != 'undefined' ? wsServer : 'wss://' + targetHost + '/ws/assistant';
-var vadVersion = typeof(vad_version) != 'undefined' ? vad_version : '';
+var vadVersion = typeof(vad_version) != 'undefined' ? vad_version : '1.0';
 var authType = typeof(authenticationType) != 'undefined' ? authenticationType : 'DPoP';
 var authClient = solidClientAuthentication.default;
 var wsUrl = new URL(wsApiUrl); /* WebSockets endpoint */
@@ -62,4 +62,5 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Initialization of Authentication Event Handlers
     initAuthentication();
+    $('#vad_version').html(vadVersion);
 });
