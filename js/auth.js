@@ -42,13 +42,13 @@ function initAuthentication() {
 
     $('.reconnect-button').click(function (e) {
         webSocket = new WebSocket(wsUrl.toString());
-        sendMessage(undefined, 'Connected', undefined, undefined);
+        showSuccessNotice('Connected');
         webSocket.onopen = onOpen;
         webSocket.onmessage = onMessage;
         webSocket.onerror = onError;
         webSocket.onclose = onClose;
         $('#user-input-textbox').show();
-        $('.reconenct-button-group').hide();
+        $('.reconnect-button-group').hide();
     });
 }
 
