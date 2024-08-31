@@ -60,6 +60,7 @@ function initUI() {
     $('.logout-button').on('click', authLogout);
 
     $('#run-submit').on('click', handleUserInput);
+    $('#stop-submit').on('click', handleStop);
 
     // Copy message to clipboard
     $(document).on('click', '.message-copy', function() {
@@ -117,6 +118,16 @@ function initUserInputField() {
             }
         }
     });
+}
+
+function runStarted(flag) {
+    if (flag) {
+        $('#run-submit').hide();
+        $('#stop-submit').show();
+    } else {
+        $('#run-submit').show();
+        $('#stop-submit').hide();
+    }
 }
 
 /**

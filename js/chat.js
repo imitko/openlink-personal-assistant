@@ -424,6 +424,23 @@ async function handleUserInput() {
     $textarea.val(''); // Clear the input field
 }
 
+async function handleStop () {
+    let url = new URL('/chat/api/threads', httpBase);
+    let params = new URLSearchParams(url.search);
+    params.append('thread_id', currentThread);
+    params.append('run_id', currentRunId);
+    params.append('apiKey', apiKey ? apiKey : '');
+    params.append('ctl', 1);
+    url.search = params.toString();
+    try {
+        const resp = authClient.fetch (url.toString());
+        runStarted(false);
+        currentRunId = undefined;
+    } catch (e) {
+        showFailureNotice('Stop failed: ' + e.message);
+    }
+}
+
 /**
  * Sends a message to the server via WebSocket.
  * 
@@ -497,13 +514,16 @@ function readMessage(input) {
     } else if ('info' === kind) {
         if (obj.data.run_id) {
             currentRunId = obj.data.run_id;
+            runStarted(true);
         }
     } else if ('message_id' === kind) {
         $('#'+obj.prompt_id).attr('id', obj.message_id); // set user prompt id
     } else if (text === '[DONE]' || text === '[LENGTH]') {
         // End of the message
+        runStarted(false);
         accumulatedMessage = ''; // Reset the accumulated message
         receivingMessage = null;
+        currentRunId = undefined;
         $('.loader').css('display', 'none'); // Hide loader
         return;
     } else if (!text.run_id) {
