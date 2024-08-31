@@ -37,6 +37,9 @@ function initUI() {
     initMaxThreads();
     initSessionReplaySpeed();
     initShareSessionReplaySpeed();
+    $('#enable_debug').on('click', function(e) {
+        $('.funciton-debug').toggleClass('d-none', !e.target.checked);
+    });
 
     initAssistantSuggestions();
     initAssistantOpenClose();
@@ -65,7 +68,7 @@ function initUI() {
 
     // Event handler for copying message permalink to clipboard
     $(document).on('click', '.message-permalink', function() {
-        const messageId = $(this).closest('.chat-message').data('message-id');
+        const messageId = $(this).closest('.chat-message').attr('id');
         copyLinkToClipboard(currentThread, messageId);
     });
 
@@ -77,7 +80,7 @@ function initUI() {
             $("#login-modal").show();
             $('.loader').css('display', 'none');
         } else {
-            const messageId = $(this).closest('.chat-message').data('message-id');
+            const messageId = $(this).closest('.chat-message').attr('id');
             if (confirm('Are you sure you want to delete this message?')) {
                 deleteMessage(messageId);
             }

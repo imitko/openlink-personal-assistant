@@ -180,9 +180,13 @@ function createMessageHTML(text, role, message_id, assistant_id = null) {
     const assistant_name = getAssistantName(assistant_id);
     const formattedText = md.render(text); // Convert markdown to HTML
     const sender = assistant_name != null ? assistant_name : role;
+    let cls = 'Function' === role ? 'funciton-debug' : '';
+    if ('Function' === role && !$('#enable_debug').is(':checked')) {
+        cls += ' d-none';
+    }
 
     // Create message container with associated message_id
-    const $messageContainer = $('<div>', { class: 'chat-message', 'data-message-id': message_id, 'id': message_id, });
+    const $messageContainer = $('<div>', { class: `chat-message ${cls}`, 'id': message_id, });
 
     // Create message header
     const $messageHeader = $('<div>', { class: 'message-header' })
@@ -209,7 +213,7 @@ function createMessageHTML(text, role, message_id, assistant_id = null) {
 
 function createFileHTML(message_id, name, role, dataUrl = null) {
     // Create message container with associated message_id
-    const $messageContainer = $('<div>', { class: 'chat-file-message', 'data-message-id': message_id });
+    const $messageContainer = $('<div>', { class: 'chat-file-message', 'id': message_id });
 
     // Create message body
     const $messageBody = $('<div>', { class: `message-body ${role}` });
@@ -549,8 +553,8 @@ async function deleteMessage(messageId) {
  * @param {string} messageId - The ID of the message to remove.
  */
 function removeChatMessageFromUI(messageId) {
-    // Select the chat message container with the specified data-message-id
-    const $message = $(`[data-message-id="${messageId}"]`);
+    // Select the chat message container with the specified id
+    const $message = $(`#${messageId}`);
 
     // Check if the message exists
     if ($message.length) {

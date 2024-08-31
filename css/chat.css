@@ -1012,7 +1012,7 @@ div.nano_start, div.nano_end {
   border: 1px solid black;
 }
 
-.enable-audio-field {
+.enable-audio-field, .enable-debug-field {
   display: flex;
   align-items: center;
   justify-content: space-between;
