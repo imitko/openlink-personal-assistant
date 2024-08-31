@@ -268,15 +268,16 @@ async function showConversation(items) {
     $('.loader').css('display', 'block'); // Show loader
     const $chatMessages = $('.chat-messages');
     $chatMessages.empty(); // Clear existing messages
+    let _animate_session = 0;
 
     if (sharedSessionAnimation > 0 && !sharedItem.length) {
-        animate_session = sharedSessionAnimation;
+        _animate_session = sharedSessionAnimation;
     }
 
     for (const item of items) {
 
         if (sharedItem.length && '#'+item.id === sharedItem && sharedSessionAnimation > 0) {
-            animate_session = sharedSessionAnimation;
+            _animate_session = sharedSessionAnimation;
         }
 
         if (item.role === "info") {
@@ -303,7 +304,7 @@ async function showConversation(items) {
 
         else {
             let role = item.role;
-            let animate = (animate_session > 0 && 'assistant' === role);
+            let animate = (_animate_session > 0 && 'assistant' === role);
             let text = animate ? '' : item.text;
             let message_id = item.id;
             let assistant_id = item.assistant_id;
@@ -315,7 +316,7 @@ async function showConversation(items) {
                 let content = item.text.split(' ');
                 for (index = 0; index < content.length; index++) {
                     $messageBody.html(md.render(content.slice(0, index + 1).join(' ')));
-                    await new Promise(r => setTimeout(r, Math.random() * animate_session));
+                    await new Promise(r => setTimeout(r, Math.random() * _animate_session));
                     if(-1 != content[index].indexOf('\n')) {
                         $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
                     }
