@@ -325,6 +325,7 @@ async function showConversation(items) {
                         $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
                     }
                 }
+                $messageBody.find('a').attr({ target: '_blank', referrerpolicy: 'origin' });
             }
         }
     };
@@ -513,6 +514,7 @@ function readMessage(input) {
             receivingMessage = $container.find('.message-body');
         } else {
             receivingMessage.html(md.render(accumulatedMessage));
+            receivingMessage.find('a').attr({ target: '_blank', referrerpolicy: 'origin' });
         }
         if (-1 != text.indexOf('\n')) {
             $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
