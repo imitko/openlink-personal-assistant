@@ -213,7 +213,7 @@ function initFileSearchDropdown() {
 function initApiKeyModal() {
     const $apiKeyModal = $("#api-key-modal");
     const $inputField = $("#api-key-input");
-    const apiKey = localStorage.getItem('openlinksw.com:opal:gpt-api-key');
+    apiKey = localStorage.getItem('openlinksw.com:opal:gpt-api-key');
 
     // apiKey ? $inputField.val(apiKey) : $apiKeyModal.show();
 
@@ -227,6 +227,7 @@ function initApiKeyModal() {
     $("#save-api-key").on("click", () => {
         const key = $inputField.val();
         if (key) {
+            apiKey = key;
             localStorage.setItem('openlinksw.com:opal:gpt-api-key', key);
             checkResumeThread().then(() => { loadAssistants(); }).then(() => { loadConversation(currentThread); });
             $apiKeyModal.hide();
@@ -235,6 +236,7 @@ function initApiKeyModal() {
 
     $("#remove-api-key").on("click", () => {
         localStorage.removeItem('openlinksw.com:opal:gpt-api-key');
+        apiKey = null;
         $apiKeyModal.hide();
     });
 }
