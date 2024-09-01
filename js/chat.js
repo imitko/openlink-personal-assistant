@@ -560,7 +560,8 @@ async function deleteMessage(messageId) {
     try {
         let resp = await authClient.fetch(url.toString(), { method:'DELETE' });
         if (resp.status != 204) {
-            showFailureNotice('Delete failed: ' + resp.statusText); // Show error message
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err?.message || resp.statusText);
         }  else {
             removeChatMessageFromUI(messageId); // Remove message from UI
         }
@@ -1391,7 +1392,8 @@ async function saveAssistantConfiguration() {
             await loadAssistants(data);
             showSuccessNotice("Assistant configuration saved.")
         } else {
-            throw new Error (response.statusText);
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err?.message || response.statusText);
         }
     } catch (error) {
         showFailureNotice('Error saving assistant configuration: ' + error.message);
@@ -1434,7 +1436,8 @@ async function deleteAssistant(assistant_id) {
 
         // Check if the response status is not 204 (No Content)
         if (resp.status != 204) {
-            showFailureNotice('Delete failed: ' + resp.statusText); // Alert if deletion failed
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err?.message || resp.statusText);
         } else {
             clearAssistant();
             $('.assistants-dropdown-text').text('Select an Assistant');
