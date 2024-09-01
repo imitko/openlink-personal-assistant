@@ -157,6 +157,7 @@ async function loadConversation(thread_id) {
             const list = await resp.json(); // Parse JSON response
             showConversation(list); // Display conversation
             currentThread = thread_id; // Update current chat ID
+            setAssistant (currentAssistant);
             $('.chat-messages').animate({ scrollTop: $('.chat-messages').prop('scrollHeight') }, 300); // Auto-scroll
         } else {
             showFailureNotice(`Conversation failed to load: ${resp.statusText}`); // Show error message
@@ -310,6 +311,7 @@ async function showConversation(items) {
             let role = item.role;
             let animate = (_animate_session > 0 && 'assistant' === role);
             let text = animate ? '' : item.text;
+            text = text?.replace(/【[0-9:]+†[\w+\.-]+】/g, '');
             let message_id = item.id;
             let assistant_id = item.assistant_id;
             let $messageContainer = createMessageHTML(text, role, message_id, assistant_id); // Create message HTML
@@ -326,6 +328,9 @@ async function showConversation(items) {
                     }
                 }
                 $messageBody.find('a').attr({ target: '_blank', referrerpolicy: 'origin' });
+            }
+            if (assistant_id) {
+                currentAssistant = assistant_id;
             }
         }
     };
@@ -357,12 +362,7 @@ function addMessageToUI(message_id, role, text, assistant_id = null) {
 
 function addFileToUI(message_id, name, role, dataUrl = null) {
     let $messageContainer = undefined
-    if (dataUrl) {
-        $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
-    } else {
-        $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
-    }
-
+    $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
     $('.chat-messages').append($messageContainer); // Append message to chat
     $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300); // Scroll to the bottom
 }
@@ -526,9 +526,10 @@ function readMessage(input) {
         currentRunId = undefined;
         $('.loader').css('display', 'none'); // Hide loader
         return;
-    } else if (!text.run_id) {
+    } else {
         lastReadMessageId = obj.message_id;
         accumulatedMessage += text;
+        accumulatedMessage = accumulatedMessage.replace(/【[0-9:]+†[\w+\.-]+】/g, '');
         if (!receivingMessage) {
             let $container = addMessageToUI(obj.message_id, 'Assistant', accumulatedMessage, assistant_id);
             receivingMessage = $container.find('.message-body');
