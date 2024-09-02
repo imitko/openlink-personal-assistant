@@ -37,6 +37,9 @@ function initUI() {
     initMaxThreads();
     initSessionReplaySpeed();
     initShareSessionReplaySpeed();
+    $('#enable_debug').on('click', function(e) {
+        $('.funciton-debug').toggleClass('d-none', !e.target.checked);
+    });
 
     initAssistantSuggestions();
     initAssistantOpenClose();
@@ -57,6 +60,7 @@ function initUI() {
     $('.logout-button').on('click', authLogout);
 
     $('#run-submit').on('click', handleUserInput);
+    $('#stop-submit').on('click', handleStop);
 
     // Copy message to clipboard
     $(document).on('click', '.message-copy', function() {
@@ -65,7 +69,7 @@ function initUI() {
 
     // Event handler for copying message permalink to clipboard
     $(document).on('click', '.message-permalink', function() {
-        const messageId = $(this).closest('.chat-message').data('message-id');
+        const messageId = $(this).closest('.chat-message').attr('id');
         copyLinkToClipboard(currentThread, messageId);
     });
 
@@ -77,7 +81,7 @@ function initUI() {
             $("#login-modal").show();
             $('.loader').css('display', 'none');
         } else {
-            const messageId = $(this).closest('.chat-message').data('message-id');
+            const messageId = $(this).closest('.chat-message').attr('id');
             if (confirm('Are you sure you want to delete this message?')) {
                 deleteMessage(messageId);
             }
@@ -114,6 +118,16 @@ function initUserInputField() {
             }
         }
     });
+}
+
+function runStarted(flag) {
+    if (flag) {
+        $('#run-submit').hide();
+        $('#stop-submit').show();
+    } else {
+        $('#run-submit').show();
+        $('#stop-submit').hide();
+    }
 }
 
 /**
@@ -199,13 +213,14 @@ function initFileSearchDropdown() {
 function initApiKeyModal() {
     const $apiKeyModal = $("#api-key-modal");
     const $inputField = $("#api-key-input");
-    const apiKey = localStorage.getItem('openlinksw.com:opal:gpt-api-key');
+    apiKey = localStorage.getItem('openlinksw.com:opal:gpt-api-key');
 
     // apiKey ? $inputField.val(apiKey) : $apiKeyModal.show();
 
     $(".icon-button[title='Api Key']").on("click", () => {
         $apiKeyModal.show();
         $inputField.val(apiKey || "");
+        $inputField.focus();
     });
 
     $(".close").on("click", () => $apiKeyModal.hide());
@@ -213,14 +228,22 @@ function initApiKeyModal() {
     $("#save-api-key").on("click", () => {
         const key = $inputField.val();
         if (key) {
+            apiKey = key;
             localStorage.setItem('openlinksw.com:opal:gpt-api-key', key);
-            checkResumeThread().then(() => { loadConversation(currentThread); });
+            checkResumeThread().then(() => { loadAssistants(); }).then(() => { loadConversation(currentThread); });
             $apiKeyModal.hide();
         } else showFailureNotice("Please enter a valid API key.");
     });
 
+    $inputField.keypress(function (e) {
+        if (e.which === 13 && this.value.length > 1) {
+            $("#save-api-key").trigger('click');
+        }
+    });
+
     $("#remove-api-key").on("click", () => {
         localStorage.removeItem('openlinksw.com:opal:gpt-api-key');
+        apiKey = null;
         $apiKeyModal.hide();
     });
 }

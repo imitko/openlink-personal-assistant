@@ -23,7 +23,7 @@ function initAuthentication() {
         $('.login-button').toggleClass('hidden', loggedIn);
         $('.logout-button').toggleClass('hidden', !loggedIn);
         updateLoginState();
-    }).catch ((e) => { showNotice ('Failed to restore session: '+e); });
+    }).catch ((e) => { showFailureNotice ('Failed to restore session: '+e); });
 
     $('.continue-button').click(function (e) {
         let url = new URL(window.location.href);
@@ -42,13 +42,13 @@ function initAuthentication() {
 
     $('.reconnect-button').click(function (e) {
         webSocket = new WebSocket(wsUrl.toString());
-        sendMessage(undefined, 'Connected', undefined, undefined);
+        showSuccessNotice('Connected');
         webSocket.onopen = onOpen;
         webSocket.onmessage = onMessage;
         webSocket.onerror = onError;
         webSocket.onclose = onClose;
         $('#user-input-textbox').show();
-        $('.reconenct-button-group').hide();
+        $('.reconnect-button-group').hide();
     });
 }
 
@@ -97,7 +97,10 @@ async function chatAuthenticate() {
         if (apiKeyRequired) {
             apiKey = localStorage.getItem('openlinksw.com:opal:gpt-api-key');
             $('#api-key').val(apiKey);
-            if (!apiKey || apiKey.length < 1) $('#api-key-modal').modal('show');
+            if (!apiKey || apiKey.length < 1) {
+                $('#api-key-modal').show();
+                $('#api-key-input').focus();
+            }
         }
     } catch (e) {
         logoutOnError = true;
@@ -136,7 +139,6 @@ async function updateLoginState() {
         $('#api-key-modal-btn').show(); // Show API key modal button
 
         await loadThreads();
-        await loadAssistants();
         await loadModels();
         await loadFunctions();
   
@@ -171,6 +173,7 @@ function checkApiKey() {
     apiKey = localStorage.getItem('openlinksw.com:opal:gpt-api-key');
     if (!apiKey && apiKeyRequired) {
         $('#api-key-modal').show();
+        $('#api-key-input').focus();
         $('.loader').css('display', 'none');
         return false;
     }

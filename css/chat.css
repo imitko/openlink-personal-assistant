@@ -237,9 +237,7 @@ body {
   width: min-content;
   background: white;
 }
-.file-upload-item img {
-  width: 60px;
-}
+
 .file-upload-item button {
   background: none;
   border: none;
@@ -291,7 +289,8 @@ body {
   position: relative;
 }
 
-.run-button, .dropdown-button {
+
+.chat-btn, .dropdown-button {
   background-color: black; /* Green background */
   border: none;
   color: white;
@@ -306,7 +305,7 @@ body {
   position: relative;
 }
 
-.textbox-container .buttons-container .right-buttons .run-button-group .run-button {
+.textbox-container .buttons-container .right-buttons .run-button-group .chat-btn {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -314,11 +313,16 @@ body {
   border-bottom-right-radius: 0;
 }
 
-.textbox-container .buttons-container .right-buttons .run-button-group .run-button .icon {
+
+.textbox-container .buttons-container .right-buttons .run-button-group .chat-btn .icon {
   margin-right: 10px;
   width: 16px;
   height: 16px;
   filter: var(--filter-white);
+}
+
+#stop-submit {
+    display: none;
 }
 
 .textbox-container .buttons-container .right-buttons .run-button-group .separator {
@@ -1003,7 +1007,7 @@ div.nano_start, div.nano_end {
 }
 
 .file-upload-item-img {
-  width: 40px;
+  width: 60px;
   height: auto;
 }
 
@@ -1014,7 +1018,7 @@ div.nano_start, div.nano_end {
   border: 1px solid black;
 }
 
-.enable-audio-field {
+.enable-audio-field, .enable-debug-field {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1030,4 +1034,8 @@ div.nano_start, div.nano_end {
 
 #audio-field-label {
   margin: 0;
+}
+
+.user-img-zoom-in , .user-img-zoom-out {
+    float: right;
 }
