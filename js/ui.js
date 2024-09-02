@@ -220,6 +220,7 @@ function initApiKeyModal() {
     $(".icon-button[title='Api Key']").on("click", () => {
         $apiKeyModal.show();
         $inputField.val(apiKey || "");
+        $inputField.focus();
     });
 
     $(".close").on("click", () => $apiKeyModal.hide());
@@ -232,6 +233,12 @@ function initApiKeyModal() {
             checkResumeThread().then(() => { loadAssistants(); }).then(() => { loadConversation(currentThread); });
             $apiKeyModal.hide();
         } else showFailureNotice("Please enter a valid API key.");
+    });
+
+    $inputField.keypress(function (e) {
+        if (e.which === 13 && this.value.length > 1) {
+            $("#save-api-key").trigger('click');
+        }
     });
 
     $("#remove-api-key").on("click", () => {

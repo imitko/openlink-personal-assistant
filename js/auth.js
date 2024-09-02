@@ -99,6 +99,7 @@ async function chatAuthenticate() {
             $('#api-key').val(apiKey);
             if (!apiKey || apiKey.length < 1) {
                 $('#api-key-modal').show();
+                $('#api-key-input').focus();
             }
         }
     } catch (e) {
@@ -172,6 +173,7 @@ function checkApiKey() {
     apiKey = localStorage.getItem('openlinksw.com:opal:gpt-api-key');
     if (!apiKey && apiKeyRequired) {
         $('#api-key-modal').show();
+        $('#api-key-input').focus();
         $('.loader').css('display', 'none');
         return false;
     }
