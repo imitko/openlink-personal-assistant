@@ -63,4 +63,10 @@ document.addEventListener("DOMContentLoaded", function() {
     // Initialization of Authentication Event Handlers
     initAuthentication();
     $('#vad_version').html(vadVersion);
+    
+    $(document).on('keydown', function(e) {
+        if (e.keyCode === 27) {
+            $('.modal').hide();
+        }
+    });
 });
