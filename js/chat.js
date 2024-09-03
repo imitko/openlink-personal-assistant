@@ -157,7 +157,7 @@ async function loadConversation(thread_id) {
             const list = await resp.json(); // Parse JSON response
             showConversation(list); // Display conversation
             currentThread = thread_id; // Update current chat ID
-            setAssistant (currentAssistant);
+            setAssistant (currentAssistant, false);
             $('.chat-messages').animate({ scrollTop: $('.chat-messages').prop('scrollHeight') }, 300); // Auto-scroll
         } else {
             showFailureNotice(`Conversation failed to load: ${resp.statusText}`); // Show error message
@@ -286,6 +286,10 @@ async function showConversation(items) {
         }
 
         if (item.role === "info") {
+            const run = item.run;
+            if ('object' === typeof(run) && Array.isArray(run.tools)) {
+                setFunctions(run.tools);
+            }
             continue;
         }
 
@@ -1158,7 +1162,7 @@ async function loadAssistants(assistant_id = null) {
  * 
  * @param {string} assistant_id - The ID of the assistant to set.
  */
-async function setAssistant(assistant_id) {
+async function setAssistant(assistant_id, initFunctionsList = true) {
     let item = assistants.find(obj => obj.id === assistant_id);
     if (!item) {
         return;
@@ -1179,7 +1183,9 @@ async function setAssistant(assistant_id) {
     $(".assistants-dropdown-menu").hide();
 
     setParameters(item);
-    setFunctions(item.tools);
+    if (initFunctionsList) {
+        setFunctions(item.tools);
+    }
     setModel(item.model);
     const $fs = $('#file-search');
     const $vs = $('.vector-store');
