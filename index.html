@@ -450,6 +450,32 @@
             </div>
         </div>
 
+        <div class="modal fade" id="auth-modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title" id="tool-auth-text" data-toggle="tooltip" data-placement="top" title="Enter credential to authorize the external tool">Authorization required</h3>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="form-check form-switch" id="oauth-sw">
+                                <input type="checkbox" id="auth-api-type" class="form-check-input">
+                                <label class="form-check-label" for="auth-api-type">Use API Key</label>
+                            </div>
+
+                            <div id="auth-api-key-inp">
+                                <label for="auth-key" class="form-label">API Key</label>
+                                <input type="text" id="auth-key" value="" class="form-control" placeholder="Enter API Key"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer button-group api-modal-buttons">
+                        <button type="button" class="button save-button" id="btn-auth-key-set">Authorize</button>
+                        <button type="button" class="button remove-button" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class='notice'>
             <div id="msg"></div>

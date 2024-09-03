@@ -510,7 +510,16 @@ function readMessage(input) {
     } else if ('function_response' === kind) {
         addMessageToUI(obj.message_id, 'Function', '**Result:**\n```\n'+text+'\n```', assistant_id)
     } else if ('authentication' === kind) {
-        // TODO: tool authentication needed, see v1
+        toolsAuth = obj.data;
+        $('#tool-auth-text').text(`Authorization required for "${toolsAuth.authOpts?.appName}" access`);
+        if (-1 == toolsAuth.authOpts?.authType.indexOf('OAuth2') || !toolsAuth.authOpts?.auth_url) {
+            $('#auth-api-type').prop('checked',true);
+            $('#auth-api-key-inp').show();
+        } else {
+            $('#auth-api-type').prop('checked',false);
+            $('#auth-api-key-inp').hide();
+        }
+        $('#auth-modal').modal('show');
     } else if ('info' === kind) {
         if (obj.data.run_id) {
             currentRunId = obj.data.run_id;

@@ -51,6 +51,7 @@ var models = [];
 var availableFunctions = [];
 var vectorStores = null;
 var fileSearch = false;
+var toolsAuth = undefined;
 
 // DOMContentLoaded Event Listener
 document.addEventListener("DOMContentLoaded", function() {
@@ -62,6 +63,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Initialization of Authentication Event Handlers
     initAuthentication();
+    initAuthDialog();
     $('#vad_version').html(vadVersion);
     
     $(document).on('keydown', function(e) {
