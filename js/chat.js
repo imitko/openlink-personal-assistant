@@ -1020,7 +1020,7 @@ async function getVectorStoreFiles(id) {
     }).then((data) => {
         return data;
     }).catch((e) => {
-        showFailureNotice('Loading messages failed: ' + e);
+        showFailureNotice('Loading vector stores failed: ' + e);
     });
     $('.loader').hide(); // Hide loader
     return fs;
@@ -1033,13 +1033,17 @@ async function getVectorStore(id) {
     if (!id) {
         return undefined;
     }
+    let vs = vectorStoresCache.find(store => store.id === id);
+    if (typeof(vs) === 'object') {
+        return vs;
+    }
     let url = new URL('/chat/api/vector_stores', httpBase);
     let params = new URLSearchParams(url.search);
     params.append('vector_store_id', id);
     params.append('apiKey', apiKey ? apiKey : '');
     url.search = params.toString();
     $('.loader').show(); // Show loader
-    const vs = await authClient.fetch (url.toString()).then((r) => {
+    vs = await authClient.fetch (url.toString()).then((r) => {
         if (!r.ok) {
             return r.json().then(e => {
                 throw new Error(`${e.error}: ${e.message}`);
@@ -1048,6 +1052,7 @@ async function getVectorStore(id) {
         }
         return r.json();
     }).then((data) => {
+        vectorStoresCache.push(data);
         return data;
     }).catch((e) => {
         showFailureNotice('Loading messages failed: ' + e);

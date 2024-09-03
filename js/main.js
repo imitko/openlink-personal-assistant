@@ -52,6 +52,7 @@ var availableFunctions = [];
 var vectorStores = null;
 var fileSearch = false;
 var toolsAuth = undefined;
+var vectorStoresCache = [];
 
 // DOMContentLoaded Event Listener
 document.addEventListener("DOMContentLoaded", function() {
