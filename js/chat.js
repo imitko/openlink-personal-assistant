@@ -1079,7 +1079,7 @@ async function loadAssistants(assistant_id = null) {
     try {
         // Construct URL with query parameters
         const url = new URL('/chat/api/assistants', httpBase);
-        url.search = new URLSearchParams({ detail: 1, apiKey: apiKey ? apiKey : '' }).toString();
+        url.search = new URLSearchParams({ detail: 1, apiKey: apiKey ? apiKey : '', limit: 100 }).toString();
 
         const resp = await authClient.fetch(url.toString()); // Fetch chat list
 
