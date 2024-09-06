@@ -896,11 +896,6 @@ async function renameChat(thread_id, new_name) {
  * @param {string} [message_id=null] - The ID of the message (optional).
  */
 async function copyLinkToClipboard(thread_id, message_id = null) {
-    var tw = '';
-    if (animate_session > 0) {
-      tw = '&t='+animate_session;
-    }
-
     $('.loader').css('display', 'block'); // Show loader
     if (typeof ClipboardItem != 'undefined') {
         const clipboardItem = new ClipboardItem({ 'text/plain': getPlink(thread_id, message_id).then((url) => {
@@ -910,7 +905,7 @@ async function copyLinkToClipboard(thread_id, message_id = null) {
                 })
             }
             return new Promise(async (resolve) => {
-                resolve(new Blob([url + tw],{ type:'text/plain' }))
+                resolve(new Blob([url],{ type:'text/plain' }))
             })
         }),
         });
@@ -959,8 +954,8 @@ async function getPlink(thread_id, message_id = null) {
             let res_id = await resp.text();
             let linkUrl = new URL(pageUrl.toString());
             linkUrl.search = 'share_id=' + res_id;
-            if (sharedSessionAnimation > 0) {
-                linkUrl.search += '&t='+sharedSessionAnimation;
+            if (animate_session > 0) {
+                linkUrl.search += '&t='+animate_session;
             }
             linkUrl.hash = hash;
             return linkUrl.toString();
@@ -1202,7 +1197,7 @@ async function setAssistant(assistant_id, initFunctionsList = true) {
     $('#vs_id').val('');
     if (vectorStores && vectorStores.length > 0) {
         const vs = await getVectorStore(vectorStores[0]);
-        $vs.append($(`<div class="vector-store-item"><div>${vs?.name}</div><div class="small">${vs?.id}</div></div>`));
+        $vs.append($(`<div class="vector-store-item"><div>${vs?.name || "Untitled store"}</div><div class="small">${vs?.id}</div></div>`));
         $('#vs_id').val(vs.id);
     } 
 }

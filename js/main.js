@@ -45,7 +45,7 @@ let recodingTimeout = null;
 var storageFolder = null;
 var logoutOnError = false;
 var chatSessionTimeoutMsec = typeof (chatSessionTimeout) != 'undefined' ? chatSessionTimeout * 1000 : -1;
-var animate_session = parseInt(pageParams.get('t')) || 0;
+var animate_session = 0;
 var assistants = [];
 var models = [];
 var availableFunctions = [];

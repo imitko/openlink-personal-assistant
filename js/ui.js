@@ -18,7 +18,7 @@ function initUI() {
     // TODO: clean this section
     document.getElementById('save-assistant-button').addEventListener('click', saveAssistantConfiguration);
     // document.getElementById('new-assistant').addEventListener('click', clearAssistant);
-    document.getElementById('clone-assistant-button').addEventListener('click', cloneAssistant);
+    //document.getElementById('clone-assistant-button').addEventListener('click', cloneAssistant);
 
     initThreadsDropdown();
     initAssistantsDropdown();
@@ -35,7 +35,6 @@ function initUI() {
     initTopP();
     initMaxTokens();
     initMaxThreads();
-    initSessionReplaySpeed();
     initShareSessionReplaySpeed();
     $('#enable_debug').on('click', function(e) {
         $('.funciton-debug').toggleClass('d-none', !e.target.checked);
@@ -469,33 +468,16 @@ function initMaxThreads() {
 }
 
 /**
- * Initializes the session replay speed input field.
- */
-function initSessionReplaySpeed() {
-    if (sharedItem.length && Number.isFinite(sharedSessionAnimation)) {
-        $('#animation_speed_in').val(sharedSessionAnimation);
-        animate_session = sharedSessionAnimation;
-    }
-
-    animate_session = $('#animation_speed_in').val()
-
-    $('#animation_speed_in').on('input', function() {
-        const value = $(this).val();
-        animate_session = parseInt(value, 10);
-    });
-}
-
-/**
  * Initializes the share session replay speed input field.
  */
 function initShareSessionReplaySpeed() {
     const maxAnimationSpeed = parseFloat($('#share_animation_speed_in').attr('max'));
-    sharedSessionAnimation = Math.min(sharedSessionAnimation, maxAnimationSpeed);
-    $('#share_animation_speed_in').val(sharedSessionAnimation)
+    animate_session = Math.min(animate_session, maxAnimationSpeed);
+    $('#share_animation_speed_in').val(animate_session)
 
     $('#share_animation_speed_in').on('input', function() {
         const value = $(this).val();
-        sharedSessionAnimation = parseInt(value, 10);
+        animate_session = parseInt(value, 10);
     });
 }
 
