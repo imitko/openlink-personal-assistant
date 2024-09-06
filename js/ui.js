@@ -229,7 +229,7 @@ function initApiKeyModal() {
         if (key) {
             apiKey = key;
             localStorage.setItem('openlinksw.com:opal:gpt-api-key', key);
-            checkResumeThread().then(() => { loadAssistants(); }).then(() => { loadConversation(currentThread); });
+            checkResumeThread().then(loadAssistants).then(() => loadConversation(currentThread));
             $apiKeyModal.hide();
         } else showFailureNotice("Please enter a valid API key.");
     });
