@@ -1059,3 +1059,10 @@ div.nano_start, div.nano_end {
   color: white;
   display: none;
 }
+
+.search-input {
+    background-repeat: no-repeat;
+    background-image: url(../svg/filter-circle.svg);
+    background-position-y: center;
+    text-indent: 6px;
+}
