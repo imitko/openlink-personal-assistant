@@ -236,7 +236,7 @@ async function createVectorStore(files) {
     const request = {
         name: prefix + ' Vector Store',
         file_ids: files,
-        expiration: 7,
+        expiration: null,
     };
     $('.loader').show();
     const vs_id = await authClient.fetch(url.toString(),
