@@ -542,12 +542,13 @@ function readMessage(input) {
     } else {
         lastReadMessageId = obj.message_id;
         accumulatedMessage += text;
-        accumulatedMessage = accumulatedMessage.replace(/【[0-9:]+†[\w+\.-]+】/g, '');
         if (!receivingMessage) {
             let $container = addMessageToUI(obj.message_id, 'Assistant', accumulatedMessage, assistant_id);
             receivingMessage = $container.find('.message-body');
         } else {
-            receivingMessage.html(md.render(accumulatedMessage));
+            let html = md.render(accumulatedMessage);
+            html = html.replace(/【[0-9:]+†[\w+\.-]+】/g, (match) => `<span class="funciton-debug d-none">${match}</span>`); 
+            receivingMessage.html(html);
             receivingMessage.find('a').attr({ target: '_blank', referrerpolicy: 'origin' });
         }
         if (-1 != text.indexOf('\n')) {
@@ -1174,7 +1175,7 @@ async function setAssistant(assistant_id, initFunctionsList = true) {
     $('.assistants-dropdown-menu').hide();
     $('#assistant-name').val(assistant_name);
     $('.assistant-id').text(assistant_id);
-    $('#instructions').text(instructions);
+    $('#instructions').val(instructions);
     $(".assistants-dropdown-menu").hide();
 
     setParameters(item);
@@ -1416,6 +1417,21 @@ async function saveAssistantConfiguration() {
     } catch (error) {
         showFailureNotice('Error saving assistant configuration: ' + error.message);
     }
+}
+
+async function assistantUnpublish(assistantId) {
+    let url = new URL('/chat/api/assistants', httpBase); // Create URL for the API call
+    let params = new URLSearchParams(url.search);
+    params.append('apiKey', apiKey || '');
+    params.append('assistant_id', assistantId);
+    params.append('published', 0);
+    url.search = params.toString();
+    $('.loader').show();
+    rc = await authClient.fetch(url.toString(), { method: 'POST', body: '{}' })
+        .then((r) => { return r.json()})
+        .then(() => { return true }).catch((e) => { return false });
+    $('.loader').hide();
+    return rc;
 }
 
 /**

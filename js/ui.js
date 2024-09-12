@@ -41,6 +41,18 @@ function initUI() {
         $('.funciton-debug').toggleClass('d-none', !e.target.checked);
     });
 
+    $('#assistant-publish').on('click', async function(e) {
+        const thisAssistant = assistants.find(item => item.id === currentAssistant);
+        const published = thisAssistant?.metadata?.published === 'true';
+        if(published && !$(this).is(':checked')) {
+            if (confirm("The assistant will be un-published, please confirm.")) {
+                let rc = await assistantUnpublish(currentAssistant);
+            } else {
+                $(this).prop('checked', true);
+            }
+        }
+    });
+
     initAssistantSuggestions();
     initAssistantOpenClose();
 
