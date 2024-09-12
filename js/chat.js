@@ -141,7 +141,6 @@ async function checkResumeThread() {
  * @param {string} thread_id - The ID of the chat to load.
  */
 async function loadConversation(thread_id) {
-    $('.loader').css('display', 'block'); // Show loader
     if (!checkApiKey()) return; // Check if API key is valid
     if (!thread_id) return; // No thread yet XXX: make new?
 
@@ -151,6 +150,7 @@ async function loadConversation(thread_id) {
     params.append('apiKey', apiKey ? apiKey : '');
     url.search = params.toString();
 
+    $('.loader').css('display', 'block'); // Show loader
     try {
         const resp = await authClient.fetch(url.toString()); // Fetch conversation data
         if (resp.ok) {
