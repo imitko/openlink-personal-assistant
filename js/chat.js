@@ -182,7 +182,7 @@ function createMessageHTML(text, role, message_id, assistant_id = null) {
     const formattedText = md.render(text); // Convert markdown to HTML
     const sender = assistant_name != null ? assistant_name : role;
     let cls = 'Function' === role ? 'funciton-debug' : '', hide = '';
-    if ('Function' === role && !$('#enable_debug').is(':checked')) {
+    if ('Function' === role && !enableDebug) {
         hide = 'd-none';
     }
 
@@ -547,7 +547,8 @@ function readMessage(input) {
             receivingMessage = $container.find('.message-body');
         } else {
             let html = md.render(accumulatedMessage);
-            html = html.replace(/【[0-9:]+†[\w+\.-]+】/g, (match) => `<span class="funciton-debug d-none">${match}</span>`); 
+            let d_none = enableDebug ? '' : 'd-none';
+            html = html.replace(/【[0-9:]+†[\w+\.-]+】/g, (match) => `<span class="funciton-debug ${d_none}">${match}</span>`); 
             receivingMessage.html(html);
             receivingMessage.find('a').attr({ target: '_blank', referrerpolicy: 'origin' });
         }

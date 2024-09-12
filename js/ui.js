@@ -37,9 +37,6 @@ function initUI() {
     initMaxTokens();
     initMaxThreads();
     initShareSessionReplaySpeed();
-    $('#enable_debug').on('click', function(e) {
-        $('.funciton-debug').toggleClass('d-none', !e.target.checked);
-    });
 
     $('#assistant-publish').on('click', async function(e) {
         const thisAssistant = assistants.find(item => item.id === currentAssistant);
@@ -51,6 +48,11 @@ function initUI() {
                 $(this).prop('checked', true);
             }
         }
+    });
+
+    $('#enable_debug').on('click', function(e) {
+        enableDebug = $(this).is(':checked');
+        $('.funciton-debug').toggleClass('d-none', !e.target.checked);
     });
 
     initAssistantSuggestions();
