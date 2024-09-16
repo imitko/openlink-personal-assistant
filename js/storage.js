@@ -15,7 +15,9 @@ async function listStorage() {
 
     try {
         const response = await authClient.fetch(storageFolder, options); // Fetch storage folder contents
-        if (!response.ok) throw new Error(response.statusText);
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
 
         const xmlText = await response.text(); // Get response text
         const parser = new DOMParser();
@@ -73,7 +75,7 @@ async function loadFromStorage(link) {
     authClient.fetch(link, { method:'GET', headers: { 'Accept': 'application/json' } })
     .then((res) => {
         if (!res.ok) {
-             throw new Error(res.statusText);
+            throw new Error(res.statusText);
         }
         return res.json();
     })
@@ -132,8 +134,19 @@ async function importSession() {
     url.search = params.toString();
     $('.loader').show();
     try {
-        const res = await authClient.fetch(url.toString(), {method:'POST',headers: {'Accept':'application/json' },body:JSON.stringify(importedSession)})
-        if (!res.ok) throw new Error(res.statusText);
+        const res = await authClient.fetch(url.toString(), { 
+            method:'POST',
+            headers: {'Accept':'application/json' },
+            body:JSON.stringify(importedSession) 
+        });
+        if (!res.ok) {
+            try {
+                const { error, message } = await res.json();
+                showFailureNotice(`${error}:${message}`);
+            } catch {
+                showFailureNotice(res.statusText);
+            }
+        }
         const obj = await res.json(); // Parse response JSON
         await createNewThread(obj);
         $('#user-input-textbox').show();
@@ -166,7 +179,14 @@ async function exportSession(thread_id) {
 
     try {
         const response = await authClient.fetch(url.toString()); // Fetch chat data
-        if (!response.ok) throw new Error(response.statusText);
+        if (!response.ok) {
+            try {
+                const { error, message } = await response.json();
+                showFailureNotice(`${error}:${message}`);
+            } catch {
+                showFailureNotice(response.statusText);
+            }
+        }
         
         const body = await response.json(); // Parse response JSON
         const title = body?.info?.title ? body.info.title : thread_id;
@@ -175,7 +195,9 @@ async function exportSession(thread_id) {
         const options = { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body, null, 2) };
 
         const uploadResponse = await authClient.fetch(uploadUrl.toString(), options); // Upload JSON file
-        if (!uploadResponse.ok) throw new Error(uploadResponse.statusText);
+        if (!uploadResponse.ok) {
+            throw new Error(uploadResponse.statusText);
+        }
 
         const location = uploadResponse.headers.get('location');
         const link = new URL(location, storageFolder);

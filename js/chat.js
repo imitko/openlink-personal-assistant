@@ -179,7 +179,7 @@ async function loadConversation(thread_id) {
  */
 function createMessageHTML(text, role, message_id, assistant_id = null) {
     const assistant_name = getAssistantName(assistant_id);
-    const formattedText = md.render(text); // Convert markdown to HTML
+    const formattedText = md.render(text||''); // Convert markdown to HTML
     const sender = assistant_name != null ? assistant_name : role;
     let cls = 'Function' === role ? 'funciton-debug' : '', hide = '';
     if ('Function' === role && !enableDebug) {
@@ -884,7 +884,12 @@ async function renameChat(thread_id, new_name) {
 
         // Check if the response status is not OK (200)
         if (!resp.ok || resp.status != 200) {
-            showFailureNotice('Rename failed: ' + resp.statusText); // Alert if renaming failed
+            try {
+                const { error, message } = await resp.json();
+                showFailureNotice(`Rename failed: ${error}:${message}`);
+            } catch {
+                showFailureNotice('Rename failed: ' + resp.statusText); // Alert if renaming failed
+            }
         }
     } catch (e) {
         showFailureNotice('Rename failed: ' + e); // Alert if there was an error during the request
@@ -989,8 +994,9 @@ async function loadShare(obj_id) {
         if (!r.ok) {
             return r.json().then(e => {
                 throw new Error(`${e.error}: ${e.message}`);
+            }).catch(() => {
+                throw new Error(r.statusText);
             });
-            throw new Error(r.statusText);
         }
         return r.json();
     }).then((data) => {
@@ -1014,8 +1020,9 @@ async function getVectorStoreFiles(id) {
         if (!r.ok) {
             return r.json().then(e => {
                 throw new Error(`${e.error}: ${e.message}`);
+            }).catch(() => {
+                throw new Error(r.statusText);
             });
-            throw new Error(r.statusText);
         }
         return r.json();
     }).then((data) => {
@@ -1048,15 +1055,16 @@ async function getVectorStore(id) {
         if (!r.ok) {
             return r.json().then(e => {
                 throw new Error(`${e.error}: ${e.message}`);
+            }).catch(() => {
+                throw new Error(r.statusText);
             });
-            throw new Error(r.statusText);
         }
         return r.json();
     }).then((data) => {
         vectorStoresCache.push(data);
         return data;
     }).catch((e) => {
-        showFailureNotice('Loading messages failed: ' + e);
+        showFailureNotice('Vector store lookup failed: ' + e);
         return undefined;
     });
     $('.loader').hide(); // Hide loader

@@ -108,7 +108,14 @@ async function storeFile(thread_id, name, type, blob) {
     try {
         // Make the API request to upload the file
         const response = await authClient.fetch(url.toString(), { method: 'POST', body: formData });
-        if (!response.ok) throw new Error(response.statusText);
+        if (!response.ok) {
+            try {
+                const { error, message } = await response.json();
+                showFailureNotice(`${error}:${message}`);
+            } catch {
+                showFailureNotice(response.statusText); // Alert if renaming failed
+            }
+        }
         // Retrieve the file ID from the response
         const file_id = await response.text();
         showSuccessNotice(`${name} uploaded successfully`);
@@ -145,6 +152,9 @@ async function deleteFile(thread_id, file_id, name) {
     $('.loader').show();
     await authClient.fetch(url.toString(), { method:'DELETE' }).then((r) => {
         if (r.status != 204) {
+            return r.json().then(e => {
+                throw new Error(`${e.error}: ${e.message}`);
+            });
             throw new Error (r.statusText);
         }
         showSuccessNotice(`${name} successfully deleted`);
@@ -243,7 +253,11 @@ async function createVectorStore(files) {
         { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(request) }).
         then(r => {
             if (!r.ok) {
-                throw new Error ('Create Vector Store failed:' + r.statusText);
+                return r.json().then(e => {
+                    throw new Error(`${e.error}: ${e.message}`);
+                }).catch(() => {
+                    throw new Error ('Create Vector Store failed:' + r.statusText);
+                });
             }
             return r.text();
         }).then((id) => { return id; }).catch((e) => {
@@ -271,7 +285,11 @@ async function updateVectorStore(vs_id, files) {
         { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(request) }).
         then(r => {
             if (!r.ok) {
-                throw new Error ('Create Vector Store failed:' + r.statusText);
+                return r.json().then(e => {
+                    throw new Error(`${e.error}: ${e.message}`);
+                }).catch(() => {
+                    throw new Error ('Update Vector Store failed:' + r.statusText);
+                });
             }
             return r.text();
         }).then((id) => { return id; }).catch((e) => {
