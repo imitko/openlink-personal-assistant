@@ -18,9 +18,10 @@ function initUI() {
     // TODO: clean this section
     document.getElementById('save-assistant-button').addEventListener('click', saveAssistantConfiguration);
     // document.getElementById('new-assistant').addEventListener('click', clearAssistant);
-    document.getElementById('clone-assistant-button').addEventListener('click', cloneAssistant);
+    //document.getElementById('clone-assistant-button').addEventListener('click', cloneAssistant);
 
     initThreadsDropdown();
+    initSearch();
     initAssistantsDropdown();
     initModelsDropdown();
     initFileSearchDropdown();
@@ -35,8 +36,24 @@ function initUI() {
     initTopP();
     initMaxTokens();
     initMaxThreads();
-    initSessionReplaySpeed();
     initShareSessionReplaySpeed();
+
+    $('#assistant-publish').on('click', async function(e) {
+        const thisAssistant = assistants.find(item => item.id === currentAssistant);
+        const published = thisAssistant?.metadata?.published === 'true';
+        if(published && !$(this).is(':checked')) {
+            if (confirm("The assistant will be un-published, please confirm.")) {
+                let rc = await assistantUnpublish(currentAssistant);
+            } else {
+                $(this).prop('checked', true);
+            }
+        }
+    });
+
+    $('#enable_debug').on('click', function(e) {
+        enableDebug = $(this).is(':checked');
+        $('.funciton-debug').toggleClass('d-none', !e.target.checked);
+    });
 
     initAssistantSuggestions();
     initAssistantOpenClose();
@@ -57,6 +74,7 @@ function initUI() {
     $('.logout-button').on('click', authLogout);
 
     $('#run-submit').on('click', handleUserInput);
+    $('#stop-submit').on('click', handleStop);
 
     // Copy message to clipboard
     $(document).on('click', '.message-copy', function() {
@@ -65,7 +83,7 @@ function initUI() {
 
     // Event handler for copying message permalink to clipboard
     $(document).on('click', '.message-permalink', function() {
-        const messageId = $(this).closest('.chat-message').data('message-id');
+        const messageId = $(this).closest('.chat-message').attr('id');
         copyLinkToClipboard(currentThread, messageId);
     });
 
@@ -77,7 +95,7 @@ function initUI() {
             $("#login-modal").show();
             $('.loader').css('display', 'none');
         } else {
-            const messageId = $(this).closest('.chat-message').data('message-id');
+            const messageId = $(this).closest('.chat-message').attr('id');
             if (confirm('Are you sure you want to delete this message?')) {
                 deleteMessage(messageId);
             }
@@ -116,6 +134,16 @@ function initUserInputField() {
     });
 }
 
+function runStarted(flag) {
+    if (flag) {
+        $('#run-submit').hide();
+        $('#stop-submit').show();
+    } else {
+        $('#run-submit').show();
+        $('#stop-submit').hide();
+    }
+}
+
 /**
  * Threads dropdown functionality.
  */
@@ -140,6 +168,24 @@ function initThreadsDropdown() {
         dropdown.find(".threads-dropdown-menu").hide();
         $('.threads-dropdown-item-actions').hide();
         $('.threads-dropdown-item').removeClass('hover');
+    });
+}
+
+function initSearch() {
+    $('.search-input').on('keyup', function(e) {
+        const word = e.target.value.toUpperCase();
+        $('.threads-dropdown-item').removeClass('d-none');
+        if (!word.length) {
+            $(".threads-dropdown").find(".threads-dropdown-menu").hide();
+            return;
+        }
+        $('.threads-dropdown-item').each(function(index){
+            $span = $(this).find('.threads-dropdown-item-text');
+            if (-1 == $span.text().toUpperCase().indexOf(word)) {
+                $(this).addClass('d-none');
+            }
+        });
+        $(".threads-dropdown").find(".threads-dropdown-menu").show();
     });
 }
 
@@ -199,13 +245,14 @@ function initFileSearchDropdown() {
 function initApiKeyModal() {
     const $apiKeyModal = $("#api-key-modal");
     const $inputField = $("#api-key-input");
-    const apiKey = localStorage.getItem('openlinksw.com:opal:gpt-api-key');
+    apiKey = localStorage.getItem('openlinksw.com:opal:gpt-api-key');
 
     // apiKey ? $inputField.val(apiKey) : $apiKeyModal.show();
 
     $(".icon-button[title='Api Key']").on("click", () => {
         $apiKeyModal.show();
         $inputField.val(apiKey || "");
+        $inputField.focus();
     });
 
     $(".close").on("click", () => $apiKeyModal.hide());
@@ -213,14 +260,22 @@ function initApiKeyModal() {
     $("#save-api-key").on("click", () => {
         const key = $inputField.val();
         if (key) {
+            apiKey = key;
             localStorage.setItem('openlinksw.com:opal:gpt-api-key', key);
-            checkResumeThread().then(() => { loadConversation(currentThread); });
+            checkResumeThread().then(loadAssistants).then(() => loadConversation(currentThread));
             $apiKeyModal.hide();
         } else showFailureNotice("Please enter a valid API key.");
     });
 
+    $inputField.keypress(function (e) {
+        if (e.which === 13 && this.value.length > 1) {
+            $("#save-api-key").trigger('click');
+        }
+    });
+
     $("#remove-api-key").on("click", () => {
         localStorage.removeItem('openlinksw.com:opal:gpt-api-key');
+        apiKey = null;
         $apiKeyModal.hide();
     });
 }
@@ -446,34 +501,45 @@ function initMaxThreads() {
 }
 
 /**
- * Initializes the session replay speed input field.
+ * Initializes the share session replay speed input field.
  */
-function initSessionReplaySpeed() {
-    if (sharedItem.length && Number.isFinite(sharedSessionAnimation)) {
-        $('#animation_speed_in').val(sharedSessionAnimation);
-        animate_session = sharedSessionAnimation;
-    }
+function initShareSessionReplaySpeed() {
+    const maxAnimationSpeed = parseFloat($('#share_animation_speed_in').attr('max'));
+    animate_session = Math.min(animate_session, maxAnimationSpeed);
+    $('#share_animation_speed_in').val(animate_session)
 
-    animate_session = $('#animation_speed_in').val()
-
-    $('#animation_speed_in').on('input', function() {
+    $('#share_animation_speed_in').on('input', function() {
         const value = $(this).val();
         animate_session = parseInt(value, 10);
     });
 }
 
-/**
- * Initializes the share session replay speed input field.
- */
-function initShareSessionReplaySpeed() {
-    const maxAnimationSpeed = parseFloat($('#share_animation_speed_in').attr('max'));
-    sharedSessionAnimation = Math.min(sharedSessionAnimation, maxAnimationSpeed);
-    $('#share_animation_speed_in').val(sharedSessionAnimation)
+function selectSuggestion(direction) {
+    var $suggestions = $('.assistants-suggestions-dropdown');
+    let $options = $suggestions.find('.assistants-suggestions-item');
+    let $selected = $options.filter('.selected');
+    let index = $options.index($selected);
 
-    $('#share_animation_speed_in').on('input', function() {
-        const value = $(this).val();
-        sharedSessionAnimation = parseInt(value, 10);
-    });
+
+    if (40 == direction) {
+        index = (index + 1) % $options.length;
+    } else if (38 == direction) {
+        index = (index - 1 + $options.length) % $options.length;
+    }
+    $options.removeClass('selected');
+    $options.eq(index).addClass('selected');
+
+    let selectedOption = $options.eq(index)[0];
+    let popupHeight = $suggestions.height();
+    let popupScrollTop = $suggestions.scrollTop();
+    let optionTop = selectedOption.offsetTop;
+    let optionHeight = selectedOption.offsetHeight;
+
+    if (optionTop < popupScrollTop) {
+        $suggestions.scrollTop(optionTop);
+    } else if (optionTop + optionHeight > popupScrollTop + popupHeight) {
+        $suggestions.scrollTop(optionTop + optionHeight - popupHeight);
+    }
 }
 
 /**
@@ -482,6 +548,10 @@ function initShareSessionReplaySpeed() {
 function initAssistantSuggestions() {
     var $suggestions = $('.assistants-suggestions-dropdown');
     $('#user-input').on('keyup', function(e) {
+        if ($suggestions.is(':visible') && (38 == e.keyCode || 40 == e.keyCode || 13 == e.keyCode || 27 == e.keyCode)) {
+            e.preventDefault();
+            return;
+        }
         let $mentionInput = $('#user-input');
         let text = this.value.trim();
         if (text.split(/\s+/).length === 1 && text.match(/^@\w*$/)) {
@@ -495,6 +565,7 @@ function initAssistantSuggestions() {
                     return `<div class="assistants-suggestions-item" data-assist-id="${item.id}">${item.name}</div>`;
                 }).join('');
                 $suggestions.html(suggestionsHtml).show();
+                $suggestions.children('.assistants-suggestions-item').first().addClass('selected');
                 $suggestions.css({
                                  bottom: $mentionInput.position().top + $mentionInput.outerHeight() + 30,
                                  left: $mentionInput.position().left + 10
@@ -505,6 +576,10 @@ function initAssistantSuggestions() {
         } else {
             $suggestions.hide();
         }
+        if (0 === text.length && 8 === e.keyCode) {
+            $('#assistant-id').text('').hide();
+            $mentionInput.css('text-indent', 0);
+        }
     });
 
     $suggestions.on('click', '.assistants-suggestions-item', function() {
@@ -512,13 +587,37 @@ function initAssistantSuggestions() {
         let selectedAssistant = $(this).text();
         let text = $mentionInput.val();
         let caretPos = $mentionInput[0].selectionStart;
-        let beforeCaret = text.substring(0, caretPos).replace(/@\w*$/, '@[' + selectedAssistant + '] ');
+        let beforeCaret = text.substring(0, caretPos).replace(/@\w*$/, '@' + selectedAssistant + ' ');
         let afterCaret = text.substring(caretPos);
         setAssistant($(this).attr('data-assist-id'));
-        $mentionInput.val(beforeCaret + afterCaret);
+        $mentionInput.val(afterCaret);
+        $('#assistant-id').text(beforeCaret).show();
+        $mentionInput.css('text-indent', Math.round($('#assistant-id').width()) + 10);
         $mentionInput.focus();
         $suggestions.hide();
     });
+
+    $('#user-input').keypress(async function (e) {
+        if ($suggestions.is(':visible') && (38 == e.keyCode || 40 == e.keyCode || 13 == e.keyCode || 27 == e.keyCode)) {
+            e.preventDefault();
+            return;
+        }
+    });
+
+    $('#user-input').on('keydown', function(e) {
+        if ($suggestions.is(':visible')) {
+            if (38 == e.keyCode || 40 == e.keyCode) {
+                selectSuggestion(e.keyCode);
+                e.preventDefault();
+            } else if (13 == e.keyCode) {
+                $('.assistants-suggestions-dropdown .assistants-suggestions-item.selected').trigger('click');
+                e.preventDefault();
+            } else if (27 == e.keyCode) {
+                $suggestions.hide();
+            }
+        }
+    });
+
 }
 
 /**

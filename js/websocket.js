@@ -6,8 +6,8 @@
  */
 onOpen = function(event) {
     chatAuthenticate().then(() => {
-        if (!apiKeyRequired && currentThread) {
-            checkResumeThread().then(() => { loadConversation(currentThread); });
+        if (!apiKeyRequired || apiKey) {
+            checkResumeThread().then(loadAssistants).then(() => loadConversation(currentThread));
         }
     });
 };
@@ -27,7 +27,7 @@ onMessage = function(event) {
  * @param {Event} event - The WebSocket event.
  */
 onError = function(event) {
-    sendMessage(undefined, 'Error connecting to the server.', undefined, undefined);
+    showFailureNotice('Error connecting to the server.');
     $('.loader').hide(); // Hide the loader
     webSocket.close(); // Close the WebSocket connection
 };
@@ -38,8 +38,8 @@ onError = function(event) {
  * @param {Event} event - The WebSocket event.
  */
 onClose = function(event) {
-    sendMessage(undefined, 'Connection to the server closed.', undefined, undefined);
+    showFailureNotice('Connection to the server closed.');
     $('.loader').hide(); // Hide the loader
     $('#user-input-textbox').hide(); // Hide the user input textbox
-    $('.reconenct-button-group').show(); // Show the reconnect button group
+    $('.reconnect-button-group').show(); // Show the reconnect button group
 };

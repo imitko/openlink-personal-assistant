@@ -141,8 +141,8 @@ async function checkResumeThread() {
  * @param {string} thread_id - The ID of the chat to load.
  */
 async function loadConversation(thread_id) {
-    $('.loader').css('display', 'block'); // Show loader
     if (!checkApiKey()) return; // Check if API key is valid
+    if (!thread_id) return; // No thread yet XXX: make new?
 
     let url = new URL('/chat/api/messages', httpBase);
     let params = new URLSearchParams(url.search);
@@ -150,12 +150,14 @@ async function loadConversation(thread_id) {
     params.append('apiKey', apiKey ? apiKey : '');
     url.search = params.toString();
 
+    $('.loader').css('display', 'block'); // Show loader
     try {
         const resp = await authClient.fetch(url.toString()); // Fetch conversation data
         if (resp.ok) {
             const list = await resp.json(); // Parse JSON response
             showConversation(list); // Display conversation
             currentThread = thread_id; // Update current chat ID
+            setAssistant (currentAssistant, false);
             $('.chat-messages').animate({ scrollTop: $('.chat-messages').prop('scrollHeight') }, 300); // Auto-scroll
         } else {
             showFailureNotice(`Conversation failed to load: ${resp.statusText}`); // Show error message
@@ -177,19 +179,23 @@ async function loadConversation(thread_id) {
  */
 function createMessageHTML(text, role, message_id, assistant_id = null) {
     const assistant_name = getAssistantName(assistant_id);
-    const formattedText = md.render(text); // Convert markdown to HTML
+    const formattedText = md.render(text||''); // Convert markdown to HTML
     const sender = assistant_name != null ? assistant_name : role;
+    let cls = 'Function' === role ? 'funciton-debug' : '', hide = '';
+    if ('Function' === role && !enableDebug) {
+        hide = 'd-none';
+    }
 
     // Create message container with associated message_id
-    const $messageContainer = $('<div>', { class: 'chat-message', 'data-message-id': message_id, 'id': message_id, });
+    const $messageContainer = $('<div>', { class: `chat-message ${cls} ${hide}`, 'id': message_id, });
 
     // Create message header
     const $messageHeader = $('<div>', { class: 'message-header' })
         .append($('<p>', { class: `message-sender ${role}`, text: sender.replace(/^\w/, c => c.toUpperCase()) }))
         .append($('<div>', { class: 'message-icons' })
-            .append($('<img>', { src: 'svg/link-2.svg', alt: 'Permalink', class: 'message-permalink icon' }))
+            .append($('<img>', { src: 'svg/link-2.svg', alt: 'Permalink', class: `message-permalink icon ${hide}` }))
             .append($('<img>', { src: 'svg/clipboard.svg', alt: 'Copy', class: 'message-copy icon' }))
-            .append($('<img>', { src: 'svg/trash.svg', alt: 'Delete', class: 'message-delete icon' }))
+            .append($('<img>', { src: 'svg/trash.svg', alt: 'Delete', class: `message-delete icon ${hide}` }))
         );
 
     // Create message body
@@ -208,7 +214,7 @@ function createMessageHTML(text, role, message_id, assistant_id = null) {
 
 function createFileHTML(message_id, name, role, dataUrl = null) {
     // Create message container with associated message_id
-    const $messageContainer = $('<div>', { class: 'chat-file-message', 'data-message-id': message_id });
+    const $messageContainer = $('<div>', { class: 'chat-file-message', 'id': message_id });
 
     // Create message body
     const $messageBody = $('<div>', { class: `message-body ${role}` });
@@ -267,18 +273,23 @@ async function showConversation(items) {
     $('.loader').css('display', 'block'); // Show loader
     const $chatMessages = $('.chat-messages');
     $chatMessages.empty(); // Clear existing messages
+    let _animate_session = 0;
 
     if (sharedSessionAnimation > 0 && !sharedItem.length) {
-        animate_session = sharedSessionAnimation;
+        _animate_session = sharedSessionAnimation;
     }
 
     for (const item of items) {
 
         if (sharedItem.length && '#'+item.id === sharedItem && sharedSessionAnimation > 0) {
-            animate_session = sharedSessionAnimation;
+            _animate_session = sharedSessionAnimation;
         }
 
         if (item.role === "info") {
+            const run = item.run;
+            if ('object' === typeof(run) && Array.isArray(run.tools)) {
+                setFunctions(run.tools);
+            }
             continue;
         }
 
@@ -302,8 +313,9 @@ async function showConversation(items) {
 
         else {
             let role = item.role;
-            let animate = (animate_session > 0 && 'assistant' === role);
+            let animate = (_animate_session > 0 && 'assistant' === role);
             let text = animate ? '' : item.text;
+            text = text?.replace(/【[0-9:]+†[\w+\.-]+】/g, '');
             let message_id = item.id;
             let assistant_id = item.assistant_id;
             let $messageContainer = createMessageHTML(text, role, message_id, assistant_id); // Create message HTML
@@ -314,11 +326,15 @@ async function showConversation(items) {
                 let content = item.text.split(' ');
                 for (index = 0; index < content.length; index++) {
                     $messageBody.html(md.render(content.slice(0, index + 1).join(' ')));
-                    await new Promise(r => setTimeout(r, Math.random() * animate_session));
+                    await new Promise(r => setTimeout(r, Math.random() * _animate_session));
                     if(-1 != content[index].indexOf('\n')) {
                         $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
                     }
                 }
+                $messageBody.find('a').attr({ target: '_blank', referrerpolicy: 'origin' });
+            }
+            if (assistant_id) {
+                currentAssistant = assistant_id;
             }
         }
     };
@@ -350,12 +366,7 @@ function addMessageToUI(message_id, role, text, assistant_id = null) {
 
 function addFileToUI(message_id, name, role, dataUrl = null) {
     let $messageContainer = undefined
-    if (dataUrl) {
-        $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
-    } else {
-        $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
-    }
-
+    $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
     $('.chat-messages').append($messageContainer); // Append message to chat
     $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300); // Scroll to the bottom
 }
@@ -415,6 +426,23 @@ async function handleUserInput() {
 
     // Clear the input field
     $textarea.val(''); // Clear the input field
+}
+
+async function handleStop () {
+    let url = new URL('/chat/api/threads', httpBase);
+    let params = new URLSearchParams(url.search);
+    params.append('thread_id', currentThread);
+    params.append('run_id', currentRunId);
+    params.append('apiKey', apiKey ? apiKey : '');
+    params.append('ctl', 1);
+    url.search = params.toString();
+    try {
+        const resp = authClient.fetch (url.toString());
+        runStarted(false);
+        currentRunId = undefined;
+    } catch (e) {
+        showFailureNotice('Stop failed: ' + e.message);
+    }
 }
 
 /**
@@ -486,27 +514,43 @@ function readMessage(input) {
     } else if ('function_response' === kind) {
         addMessageToUI(obj.message_id, 'Function', '**Result:**\n```\n'+text+'\n```', assistant_id)
     } else if ('authentication' === kind) {
-        // TODO: tool authentication needed, see v1
+        toolsAuth = obj.data;
+        $('#tool-auth-text').text(`Authorization required for "${toolsAuth.authOpts?.appName}" access`);
+        if (-1 == toolsAuth.authOpts?.authType.indexOf('OAuth2') || !toolsAuth.authOpts?.auth_url) {
+            $('#auth-api-type').prop('checked',true);
+            $('#auth-api-key-inp').show();
+        } else {
+            $('#auth-api-type').prop('checked',false);
+            $('#auth-api-key-inp').hide();
+        }
+        $('#auth-modal').modal('show');
     } else if ('info' === kind) {
         if (obj.data.run_id) {
             currentRunId = obj.data.run_id;
+            runStarted(true);
         }
     } else if ('message_id' === kind) {
         $('#'+obj.prompt_id).attr('id', obj.message_id); // set user prompt id
     } else if (text === '[DONE]' || text === '[LENGTH]') {
         // End of the message
+        runStarted(false);
         accumulatedMessage = ''; // Reset the accumulated message
         receivingMessage = null;
+        currentRunId = undefined;
         $('.loader').css('display', 'none'); // Hide loader
         return;
-    } else if (!text.run_id) {
+    } else {
         lastReadMessageId = obj.message_id;
         accumulatedMessage += text;
         if (!receivingMessage) {
             let $container = addMessageToUI(obj.message_id, 'Assistant', accumulatedMessage, assistant_id);
             receivingMessage = $container.find('.message-body');
         } else {
-            receivingMessage.html(md.render(accumulatedMessage));
+            let html = md.render(accumulatedMessage);
+            let d_none = enableDebug ? '' : 'd-none';
+            html = html.replace(/【[0-9:]+†[\w+\.-]+】/g, (match) => `<span class="funciton-debug ${d_none}">${match}</span>`); 
+            receivingMessage.html(html);
+            receivingMessage.find('a').attr({ target: '_blank', referrerpolicy: 'origin' });
         }
         if (-1 != text.indexOf('\n')) {
             $('.chat-window').animate({ scrollTop: $('.chat-window').prop('scrollHeight') }, 300);
@@ -532,7 +576,8 @@ async function deleteMessage(messageId) {
     try {
         let resp = await authClient.fetch(url.toString(), { method:'DELETE' });
         if (resp.status != 204) {
-            showFailureNotice('Delete failed: ' + resp.statusText); // Show error message
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err?.message || resp.statusText);
         }  else {
             removeChatMessageFromUI(messageId); // Remove message from UI
         }
@@ -547,8 +592,8 @@ async function deleteMessage(messageId) {
  * @param {string} messageId - The ID of the message to remove.
  */
 function removeChatMessageFromUI(messageId) {
-    // Select the chat message container with the specified data-message-id
-    const $message = $(`[data-message-id="${messageId}"]`);
+    // Select the chat message container with the specified id
+    const $message = $(`#${messageId}`);
 
     // Check if the message exists
     if ($message.length) {
@@ -839,7 +884,12 @@ async function renameChat(thread_id, new_name) {
 
         // Check if the response status is not OK (200)
         if (!resp.ok || resp.status != 200) {
-            showFailureNotice('Rename failed: ' + resp.statusText); // Alert if renaming failed
+            try {
+                const { error, message } = await resp.json();
+                showFailureNotice(`Rename failed: ${error}:${message}`);
+            } catch {
+                showFailureNotice('Rename failed: ' + resp.statusText); // Alert if renaming failed
+            }
         }
     } catch (e) {
         showFailureNotice('Rename failed: ' + e); // Alert if there was an error during the request
@@ -853,11 +903,6 @@ async function renameChat(thread_id, new_name) {
  * @param {string} [message_id=null] - The ID of the message (optional).
  */
 async function copyLinkToClipboard(thread_id, message_id = null) {
-    var tw = '';
-    if (animate_session > 0) {
-      tw = '&t='+animate_session;
-    }
-
     $('.loader').css('display', 'block'); // Show loader
     if (typeof ClipboardItem != 'undefined') {
         const clipboardItem = new ClipboardItem({ 'text/plain': getPlink(thread_id, message_id).then((url) => {
@@ -867,7 +912,7 @@ async function copyLinkToClipboard(thread_id, message_id = null) {
                 })
             }
             return new Promise(async (resolve) => {
-                resolve(new Blob([url + tw],{ type:'text/plain' }))
+                resolve(new Blob([url],{ type:'text/plain' }))
             })
         }),
         });
@@ -916,8 +961,8 @@ async function getPlink(thread_id, message_id = null) {
             let res_id = await resp.text();
             let linkUrl = new URL(pageUrl.toString());
             linkUrl.search = 'share_id=' + res_id;
-            if (sharedSessionAnimation > 0) {
-                linkUrl.search += '&t='+sharedSessionAnimation;
+            if (animate_session > 0) {
+                linkUrl.search += '&t='+animate_session;
             }
             linkUrl.hash = hash;
             return linkUrl.toString();
@@ -949,8 +994,9 @@ async function loadShare(obj_id) {
         if (!r.ok) {
             return r.json().then(e => {
                 throw new Error(`${e.error}: ${e.message}`);
+            }).catch(() => {
+                throw new Error(r.statusText);
             });
-            throw new Error(r.statusText);
         }
         return r.json();
     }).then((data) => {
@@ -974,14 +1020,15 @@ async function getVectorStoreFiles(id) {
         if (!r.ok) {
             return r.json().then(e => {
                 throw new Error(`${e.error}: ${e.message}`);
+            }).catch(() => {
+                throw new Error(r.statusText);
             });
-            throw new Error(r.statusText);
         }
         return r.json();
     }).then((data) => {
         return data;
     }).catch((e) => {
-        showFailureNotice('Loading messages failed: ' + e);
+        showFailureNotice('Loading vector stores failed: ' + e);
     });
     $('.loader').hide(); // Hide loader
     return fs;
@@ -994,24 +1041,30 @@ async function getVectorStore(id) {
     if (!id) {
         return undefined;
     }
+    let vs = vectorStoresCache.find(store => store.id === id);
+    if (typeof(vs) === 'object') {
+        return vs;
+    }
     let url = new URL('/chat/api/vector_stores', httpBase);
     let params = new URLSearchParams(url.search);
     params.append('vector_store_id', id);
     params.append('apiKey', apiKey ? apiKey : '');
     url.search = params.toString();
     $('.loader').show(); // Show loader
-    const vs = await authClient.fetch (url.toString()).then((r) => {
+    vs = await authClient.fetch (url.toString()).then((r) => {
         if (!r.ok) {
             return r.json().then(e => {
                 throw new Error(`${e.error}: ${e.message}`);
+            }).catch(() => {
+                throw new Error(r.statusText);
             });
-            throw new Error(r.statusText);
         }
         return r.json();
     }).then((data) => {
+        vectorStoresCache.push(data);
         return data;
     }).catch((e) => {
-        showFailureNotice('Loading messages failed: ' + e);
+        showFailureNotice('Vector store lookup failed: ' + e);
         return undefined;
     });
     $('.loader').hide(); // Hide loader
@@ -1025,12 +1078,13 @@ async function getVectorStore(id) {
  */
 async function loadAssistants(assistant_id = null) {
     if (!loggedIn) return; // Exit if not logged in
+    if (!checkApiKey()) return; // Check if API key is valid
     $('.loader').css('display', 'block'); // Show loader
 
     try {
         // Construct URL with query parameters
         const url = new URL('/chat/api/assistants', httpBase);
-        url.search = new URLSearchParams({ detail: 1 }).toString();
+        url.search = new URLSearchParams({ detail: 1, apiKey: apiKey ? apiKey : '', limit: 100 }).toString();
 
         const resp = await authClient.fetch(url.toString()); // Fetch chat list
 
@@ -1113,7 +1167,7 @@ async function loadAssistants(assistant_id = null) {
  * 
  * @param {string} assistant_id - The ID of the assistant to set.
  */
-async function setAssistant(assistant_id) {
+async function setAssistant(assistant_id, initFunctionsList = true) {
     let item = assistants.find(obj => obj.id === assistant_id);
     if (!item) {
         return;
@@ -1130,11 +1184,14 @@ async function setAssistant(assistant_id) {
     $('.assistants-dropdown-menu').hide();
     $('#assistant-name').val(assistant_name);
     $('.assistant-id').text(assistant_id);
-    $('#instructions').text(instructions);
+    $('#instructions').val(instructions);
     $(".assistants-dropdown-menu").hide();
 
     setParameters(item);
-    setFunctions(item.tools);
+    if (initFunctionsList) {
+        setFunctions(item.tools);
+    }
+    $('#assistant-publish').prop('checked', 'true' === item.metadata?.published); // Note: this is a string as meta is all strings
     setModel(item.model);
     const $fs = $('#file-search');
     const $vs = $('.vector-store');
@@ -1150,7 +1207,7 @@ async function setAssistant(assistant_id) {
     $('#vs_id').val('');
     if (vectorStores && vectorStores.length > 0) {
         const vs = await getVectorStore(vectorStores[0]);
-        $vs.append($(`<div class="vector-store-item"><div>${vs?.name}</div><div class="small">${vs?.id}</div></div>`));
+        $vs.append($(`<div class="vector-store-item"><div>${vs?.name || "Untitled store"}</div><div class="small">${vs?.id}</div></div>`));
         $('#vs_id').val(vs.id);
     } 
 }
@@ -1335,6 +1392,7 @@ async function saveAssistantConfiguration() {
         temperature: temperature,
         functions: sqlFunctions,
         file_ids: file_ids,
+        publish: $('#assistant-publish').is(':checked'),
         vector_store_id: vector_store_id,
     };
 
@@ -1361,13 +1419,28 @@ async function saveAssistantConfiguration() {
             const data = await response.json();
             await loadAssistants(data);
             showSuccessNotice("Assistant configuration saved.")
-            // TODO: it returns an assistant id. Use this id to reload assistants and then set that as the active assistant
         } else {
-            showFailureNotice('Error saving assistant configuration:', response.status, response.statusText);
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err?.message || response.statusText);
         }
     } catch (error) {
-        showFailureNotice('Error saving assistant configuration:', error);
+        showFailureNotice('Error saving assistant configuration: ' + error.message);
     }
+}
+
+async function assistantUnpublish(assistantId) {
+    let url = new URL('/chat/api/assistants', httpBase); // Create URL for the API call
+    let params = new URLSearchParams(url.search);
+    params.append('apiKey', apiKey || '');
+    params.append('assistant_id', assistantId);
+    params.append('published', 0);
+    url.search = params.toString();
+    $('.loader').show();
+    rc = await authClient.fetch(url.toString(), { method: 'POST', body: '{}' })
+        .then((r) => { return r.json()})
+        .then(() => { return true }).catch((e) => { return false });
+    $('.loader').hide();
+    return rc;
 }
 
 /**
@@ -1406,7 +1479,8 @@ async function deleteAssistant(assistant_id) {
 
         // Check if the response status is not 204 (No Content)
         if (resp.status != 204) {
-            showFailureNotice('Delete failed: ' + resp.statusText); // Alert if deletion failed
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err?.message || resp.statusText);
         } else {
             clearAssistant();
             $('.assistants-dropdown-text').text('Select an Assistant');
@@ -1419,7 +1493,7 @@ async function deleteAssistant(assistant_id) {
 }
 
 function loadModels() {
-    fetch(new URL('/chat/api/getModels', httpBase))
+    fetch(new URL('/chat/api/getModels?filter=gpt*', httpBase))
         .then(resp => resp.ok ? resp.json() : Promise.reject(resp.statusText))
         .then(items => {
             models = items.length > 0 ? items : models;
@@ -1495,114 +1569,6 @@ function getAssistantName(assistant_id) {
     let assistant = assistants.find(obj => obj.id === assistant_id);
     return assistant ? assistant.name : null;
 }
-
-// function getSupportedFileType(filename) {
-//     const ext2mime = {
-//         'c': 'text/x-c',
-//         'cc': 'text/x-c++',
-//         'h': 'text/x-c',
-//         'hpp': 'text/x-c++',
-//         'cs': 'text/x-csharp',
-//         'cpp': 'text/x-c++',
-//         'doc': 'application/msword',
-//         'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-//         'html': 'text/html',
-//         'xhtml': 'text/html',
-//         'java': 'text/x-java',
-//         'json': 'application/json',
-//         'jsonl': 'application/json',
-//         'jsonld': 'application/json',
-//         'md': 'text/markdown',
-//         'pdf': 'application/pdf',
-//         'php': 'text/x-php',
-//         'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-//         'py': 'text/x-python',
-//         'rb': 'text/x-ruby',
-//         'tex': 'text/x-tex',
-//         'txt': 'text/plain',
-//         'sql': 'text/plain',
-//         'sparql': 'text/plain',
-//         'ttl': 'text/plain',
-//         'n3': 'text/plain',
-//         'nt': 'text/plain',
-//         'nq': 'text/plain',
-//         'nquad': 'text/plain',
-//         'log': 'text/plain',
-//         'css': 'text/css',
-//         'js': 'text/javascript',
-//         'sh': 'application/x-sh',
-//         'ts': 'application/typescript'
-//     };
-//     const ext2icon = {
-//         'cs': 'filetype-cs.svg',
-//         'doc': 'filetype-doc.svg',
-//         'docx': 'filetype-docx.svg',
-//         'html': 'filetype-html.svg',
-//         'java': 'filetype-java.svg',
-//         'json': 'filetype-json.svg',
-//         'md': 'filetype-md.svg',
-//         'pdf': 'filetype-pdf.svg',
-//         'php': 'filetype-php.svg',
-//         'pptx': 'filetype-pptx.svg',
-//         'py': 'filetype-py.svg',
-//         'rb': 'filetype-rb.svg',
-//         'txt': 'filetype-txt.svg',
-//         'css': 'filetype-css.svg',
-//         'js': 'filetype-js.svg',
-//         'sh': 'filetype-sh.svg',
-//     };
-//     const extension = filename.split('.').pop();
-//     return { 
-//         mime: ext2mime[extension] || 'application/octet-stream',
-//         icon: ext2icon[extension] || 'file-text.svg'
-//     };
-// }
-
-// async function storeFile(thread_id, name, type, blob) {
-//     apiKey = localStorage.getItem('openlinksw.com:opal:gpt-api-key');
-//     let url = new URL('/chat/api/files', httpBase);
-//     let params = new URLSearchParams(url.search);
-//     const formData  = new FormData();
-//     params.append('thread_id', thread_id);
-//     formData.append('apiKey', apiKey ? apiKey : '');
-//     formData.append('name', name);
-//     formData.append('format', type);
-//     formData.append('purpose', 'assistants');
-//     formData.append('data', blob);
-//     url.search = params.toString();
-//     $('.loader').show();
-//     const file_id = await authClient.fetch(url.toString(), { method:'POST', body: formData }).
-//         then((r)=>{
-//               if (!r.ok) {
-//                   throw new Error(r.statusText)
-//               }
-//              return r.text();
-//         }).
-//         catch((e)=>{ 
-//             alert ('Can not upload file ' + e);
-//         });
-//     $('.loader').hide();
-//     return file_id;
-// }
-
-// async function deleteFile(thread_id, file_id) {
-//     apiKey = localStorage.getItem('openlinksw.com:opal:gpt-api-key');
-//     let url = new URL('/chat/api/files', httpBase);
-//     let params = new URLSearchParams(url.search);
-//     params.append('thread_id', thread_id);
-//     params.append('file_id', file_id);
-//     params.append('apiKey', apiKey ? apiKey : '');
-//     url.search = params.toString();
-//     $('.loader').show();
-//     await authClient.fetch(url.toString(), { method:'DELETE' }).then((r) => {
-//         if (r.status != 204) {
-//             throw new Error (r.statusText);
-//         }
-//     }).catch((e) => {
-//         showFailureNotice('Delete failed: ' + e);
-//     });
-//     $('.loader').hide();
-// }
 
 /**
  * Displays a success notice message for a set duration.

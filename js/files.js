@@ -108,7 +108,14 @@ async function storeFile(thread_id, name, type, blob) {
     try {
         // Make the API request to upload the file
         const response = await authClient.fetch(url.toString(), { method: 'POST', body: formData });
-        if (!response.ok) throw new Error(response.statusText);
+        if (!response.ok) {
+            try {
+                const { error, message } = await response.json();
+                showFailureNotice(`${error}:${message}`);
+            } catch {
+                showFailureNotice(response.statusText); // Alert if renaming failed
+            }
+        }
         // Retrieve the file ID from the response
         const file_id = await response.text();
         showSuccessNotice(`${name} uploaded successfully`);
@@ -145,6 +152,9 @@ async function deleteFile(thread_id, file_id, name) {
     $('.loader').show();
     await authClient.fetch(url.toString(), { method:'DELETE' }).then((r) => {
         if (r.status != 204) {
+            return r.json().then(e => {
+                throw new Error(`${e.error}: ${e.message}`);
+            });
             throw new Error (r.statusText);
         }
         showSuccessNotice(`${name} successfully deleted`);
@@ -236,14 +246,18 @@ async function createVectorStore(files) {
     const request = {
         name: prefix + ' Vector Store',
         file_ids: files,
-        expiration: 7,
+        expiration: null,
     };
     $('.loader').show();
     const vs_id = await authClient.fetch(url.toString(),
         { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(request) }).
         then(r => {
             if (!r.ok) {
-                throw new Error ('Create Vector Store failed:' + r.statusText);
+                return r.json().then(e => {
+                    throw new Error(`${e.error}: ${e.message}`);
+                }).catch(() => {
+                    throw new Error ('Create Vector Store failed:' + r.statusText);
+                });
             }
             return r.text();
         }).then((id) => { return id; }).catch((e) => {
@@ -271,7 +285,11 @@ async function updateVectorStore(vs_id, files) {
         { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(request) }).
         then(r => {
             if (!r.ok) {
-                throw new Error ('Create Vector Store failed:' + r.statusText);
+                return r.json().then(e => {
+                    throw new Error(`${e.error}: ${e.message}`);
+                }).catch(() => {
+                    throw new Error ('Update Vector Store failed:' + r.statusText);
+                });
             }
             return r.text();
         }).then((id) => { return id; }).catch((e) => {
@@ -300,13 +318,14 @@ async function handleVectorStoreFile(files) {
         }
 
         $('.loader').show();
-
         // Create a URL for the file and fetch its blob data
         const imgURL = URL.createObjectURL(file);
         const r = await fetch(imgURL);
         const blob = await r.blob();
         // Store the file on the server
+        $('#vs-spinner').show();
         const file_id = await storeFile(null, file.name, file.type && file.type != '' ? file.type : fileType.mime, blob);
+        $('#vs-spinner').hide();
         vsFiles.push(file_id);
 
         // Create a file object and add it to the selected files list
@@ -329,8 +348,10 @@ async function showVectorStoreFiles() {
     const vs_id = $('#vs_id').val();
     $('#vs-files tbody').empty();
     if (vs_id.length) {
+        $('#vs-spinner').show();
         const files = await getVectorStoreFiles(vs_id);
-        files.data?.forEach(file => {
+        $('#vs-spinner').hide();
+        files?.data?.forEach(file => {
             addVectorStoreItem({id: file.id, bytes: file.usage_bytes});
         });
     }
@@ -395,7 +416,9 @@ async function handleFileInput(files) {
         const r = await fetch(imgURL);
         const blob = await r.blob();
         // Store the file on the server
+        $('#fs-spinner').show();
         const file_id = await storeFile(currentThread, file.name, file.type && file.type != '' ? file.type : fileType.mime, blob);
+        $('#fs-spinner').hide();
 
         // Create a file object and add it to the selected files list
         const fileObj = {

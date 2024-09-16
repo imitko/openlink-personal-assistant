@@ -23,7 +23,7 @@ function initAuthentication() {
         $('.login-button').toggleClass('hidden', loggedIn);
         $('.logout-button').toggleClass('hidden', !loggedIn);
         updateLoginState();
-    }).catch ((e) => { showNotice ('Failed to restore session: '+e); });
+    }).catch ((e) => { showFailureNotice ('Failed to restore session: '+e); });
 
     $('.continue-button').click(function (e) {
         let url = new URL(window.location.href);
@@ -42,13 +42,13 @@ function initAuthentication() {
 
     $('.reconnect-button').click(function (e) {
         webSocket = new WebSocket(wsUrl.toString());
-        sendMessage(undefined, 'Connected', undefined, undefined);
+        showSuccessNotice('Connected');
         webSocket.onopen = onOpen;
         webSocket.onmessage = onMessage;
         webSocket.onerror = onError;
         webSocket.onclose = onClose;
         $('#user-input-textbox').show();
-        $('.reconenct-button-group').hide();
+        $('.reconnect-button-group').hide();
     });
 }
 
@@ -97,7 +97,10 @@ async function chatAuthenticate() {
         if (apiKeyRequired) {
             apiKey = localStorage.getItem('openlinksw.com:opal:gpt-api-key');
             $('#api-key').val(apiKey);
-            if (!apiKey || apiKey.length < 1) $('#api-key-modal').modal('show');
+            if (!apiKey || apiKey.length < 1) {
+                $('#api-key-modal').show();
+                $('#api-key-input').focus();
+            }
         }
     } catch (e) {
         logoutOnError = true;
@@ -136,7 +139,6 @@ async function updateLoginState() {
         $('#api-key-modal-btn').show(); // Show API key modal button
 
         await loadThreads();
-        await loadAssistants();
         await loadModels();
         await loadFunctions();
   
@@ -151,6 +153,10 @@ async function updateLoginState() {
                 logoutOnError = true;
                 showFailureNotice("Session has expired. You will need to re-authenticate in order to continue.")
             }, chatSessionTimeoutMsec);
+        }
+    } else {
+        if (sharedSession) {
+            $('.assistant-configuration').hide();
         }
     }
 }
@@ -171,8 +177,79 @@ function checkApiKey() {
     apiKey = localStorage.getItem('openlinksw.com:opal:gpt-api-key');
     if (!apiKey && apiKeyRequired) {
         $('#api-key-modal').show();
+        $('#api-key-input').focus();
         $('.loader').css('display', 'none');
         return false;
     }
     return true;
+}
+
+function initAuthDialog() {
+    $('#auth-api-type').on('click', function(e) {
+        const is_api_key = $('#auth-api-type').is(':checked');
+        if (!is_api_key) {
+            $('#auth-api-key-inp').hide();
+        } else {
+            $('#auth-api-key-inp').show();
+        }
+    });
+
+    $('#btn-auth-key-set').click(function() {
+        const key =  $('#auth-key').val();
+        const use_api_key = $('#auth-api-type').is(':checked');
+
+        if (!use_api_key && !key.length && toolsAuth?.authOpts?.client_id) {
+            let client_id = toolsAuth.authOpts.client_id;
+            let url = new URL(toolsAuth.authOpts.auth_url);
+            let redirect = new URL('/chat/api/callback', httpBase);
+            let params = new URLSearchParams();
+
+            params.append('app_id', toolsAuth.authOpts.appName);
+            params.append('key_id', 'auth-key');
+            params.append('event_id', 'btn-auth-key-set');
+            redirect.search = params.toString();
+
+            params.delete('app_id');
+            params.append('client_id', client_id);
+            params.append('redirect_uri', redirect.toString());
+            params.append('response_type', 'code');
+            params.append('scope', 'offline_access webid');
+            url.search = params.toString();
+            let w = window.open(url.toString(), "Authenticate", "width=800, height=600, scrollbars=no");
+            $('#btn-auth-key-set').text('Authorize');
+            return;
+        }
+
+        if (!key.length || undefined === toolsAuth) {
+            return;
+        }
+
+        const request = {
+            type: 'authToken',
+            action: 'register',
+            run_id: toolsAuth.run_id,
+            thread_id: toolsAuth.thread_id,
+            appName: toolsAuth.authOpts?.appName,
+            function_name: toolsAuth.function_name,
+            authTokenType: 'Bearer',
+            authToken: key,
+        };
+        webSocket.send(JSON.stringify(request));
+        toolsAuth = undefined;
+        authToken: $('#auth-key').val('');
+        $('#auth-modal').modal('hide');
+    });
+
+    $('#auth-modal').on("hidden.bs.modal",function() {
+        if (undefined != toolsAuth) {
+            const request = {
+                type: 'authToken',
+                action: 'cancel',
+                run_id: toolsAuth.run_id,
+                thread_id: toolsAuth.thread_id,
+            };
+            webSocket.send(JSON.stringify(request));
+            toolsAuth = undefined;
+        }
+    });
 }

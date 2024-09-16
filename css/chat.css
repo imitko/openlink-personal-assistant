@@ -289,7 +289,8 @@ body {
   position: relative;
 }
 
-.run-button, .dropdown-button {
+
+.chat-btn, .dropdown-button {
   background-color: black; /* Green background */
   border: none;
   color: white;
@@ -304,7 +305,7 @@ body {
   position: relative;
 }
 
-.textbox-container .buttons-container .right-buttons .run-button-group .run-button {
+.textbox-container .buttons-container .right-buttons .run-button-group .chat-btn {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -312,11 +313,16 @@ body {
   border-bottom-right-radius: 0;
 }
 
-.textbox-container .buttons-container .right-buttons .run-button-group .run-button .icon {
+
+.textbox-container .buttons-container .right-buttons .run-button-group .chat-btn .icon {
   margin-right: 10px;
   width: 16px;
   height: 16px;
   filter: var(--filter-white);
+}
+
+#stop-submit {
+    display: none;
 }
 
 .textbox-container .buttons-container .right-buttons .run-button-group .separator {
@@ -404,7 +410,7 @@ body {
   position: absolute;
   top: 40px;
   width: 100%; /* Ensure the dropdown menu matches the button's width */
-  min-width: 200px;
+  min-width: 300px;
   max-height: 50vh;
   border: 1px solid var(--border-color);
   border-radius: 10px;
@@ -427,6 +433,10 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
   position: relative; /* Ensure positioning context for the more button */
+}
+
+.threads-dropdown-item-edit {
+    width: 100%;
 }
 
 .threads-dropdown-item .threads-dropdown-item-more-button {
@@ -805,7 +815,7 @@ div.nano_start, div.nano_end {
   border-radius: 10px;
   padding: 16px;
   position: absolute;
-  z-index: 1000;
+  z-index: 9999;
   left: 50%;
   transform: translateX(-50%);
   top: 10px;
@@ -1012,7 +1022,7 @@ div.nano_start, div.nano_end {
   border: 1px solid black;
 }
 
-.enable-audio-field {
+.enable-audio-field, .enable-debug-field {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1032,4 +1042,27 @@ div.nano_start, div.nano_end {
 
 .user-img-zoom-in , .user-img-zoom-out {
     float: right;
+}
+
+.assistants-suggestions-dropdown .assistants-suggestions-item.selected {
+    background-color: #e0e0e0;
+}
+
+#assistant-id {
+  position: absolute;
+  padding: 0 10px 0 5px;
+  top: 23px;
+  left: 10px;
+  border-radius: 10px;
+  font-size: 90%;
+  background-color: #199ddb;
+  color: white;
+  display: none;
+}
+
+.search-input {
+    background-repeat: no-repeat;
+    background-image: url(../svg/filter-circle.svg);
+    background-position-y: center;
+    text-indent: 6px;
 }
