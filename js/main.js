@@ -53,6 +53,7 @@ var vectorStores = null;
 var fileSearch = false;
 var toolsAuth = undefined;
 var vectorStoresCache = [];
+var fileIdsCache = [];
 var enableDebug = false; 
 
 // DOMContentLoaded Event Listener

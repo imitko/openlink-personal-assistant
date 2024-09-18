@@ -358,38 +358,48 @@ async function showVectorStoreFiles() {
     }
 }
 
+/**
+* Resolve File names by id, look at cache and if not present fetch from backend
+*/
 async function resolveFiles(files) {
     let url = new URL('/chat/api/files', httpBase);
     let params = new URLSearchParams(url.search);
+    let missing = false;
     if (!files || !files.length) {
         return [];
     }
     files.forEach(f => {
-        params.append('file_ids[]', f.id);
+        if (!fileIdsCache.find(cf => cf.id === f.id)) {
+            params.append('file_ids[]', f.id);
+            missing = true;
+        }
     });
     params.append('apiKey', apiKey || '');
     url.search = params.toString();
-    $('.loader').show();
-    const fs = await authClient.fetch (url.toString()).then((r) => {
-        if (!r.ok) {
-            if (404 == r.status) {
-                return [];
+    if (missing) {
+        $('.loader').show();
+        const fs = await authClient.fetch (url.toString()).then((r) => {
+            if (!r.ok) {
+                if (404 == r.status) {
+                    return [];
+                }
+                return r.json().then(e => {
+                    throw new Error(`${e.error}: ${e.message}`);
+                }).catch(() => {
+                    throw new Error(r.statusText);
+                });
             }
-            return r.json().then(e => {
-                throw new Error(`${e.error}: ${e.message}`);
-            }).catch(() => {
-                throw new Error(r.statusText);
-            });
-        }
-        return r.json();
-    }).then((data) => {
-        return data;
-    }).catch((e) => {
-        showFailureNotice('Resolve files failed: ' + e);
-    });
-    $('.loader').hide();
+            return r.json();
+        }).then((data) => {
+            return data;
+        }).catch((e) => {
+            showFailureNotice('Resolve files failed: ' + e);
+        });
+        $('.loader').hide();
+        fileIdsCache = fileIdsCache.concat(fs);
+    }
     const res = files.map(obj => {
-        const f = fs.find(o => o.id === obj.id);
+        const f = fileIdsCache.find(o => o.id === obj.id);
         return {
             ...obj,
             filename: f ? f.filename : null,
