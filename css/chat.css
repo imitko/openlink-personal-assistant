@@ -832,7 +832,7 @@ div.nano_start, div.nano_end {
   border-radius: 10px;
   padding: 16px;
   position: absolute;
-  z-index: 1000;
+  z-index: 9999;
   left: 50%;
   transform: translateX(-50%);
   top: 10px;
