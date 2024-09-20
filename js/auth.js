@@ -209,7 +209,7 @@ function initAuthDialog() {
             params.append('event_id', 'btn-auth-key-set');
             redirect.search = params.toString();
 
-            params.delete('app_id');
+            params = new URLSearchParams();
             params.append('client_id', client_id);
             params.append('redirect_uri', redirect.toString());
             params.append('response_type', 'code');
