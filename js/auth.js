@@ -216,7 +216,7 @@ function initAuthDialog() {
         }
 
         if (!use_api_key && !key.length && client_id && auth_url) {
-            let url = new URL(toolsAuth.authOpts.auth_url);
+            let url = new URL(auth_url);
             let redirect = new URL('/chat/api/callback', httpBase);
             let params = new URLSearchParams();
 
@@ -229,7 +229,7 @@ function initAuthDialog() {
             params.append('client_id', client_id);
             params.append('redirect_uri', redirect.toString());
             params.append('response_type', 'code');
-            params.append('scope', 'offline_access webid');
+            params.append('scope', 'webid');
             url.search = params.toString();
             let w = window.open(url.toString(), "Authenticate", "width=800, height=600, scrollbars=no");
             $('#btn-auth-key-set').text('Authorize');
