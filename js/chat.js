@@ -516,12 +516,15 @@ function readMessage(input) {
     } else if ('authentication' === kind) {
         toolsAuth = obj.data;
         $('#tool-auth-text').text(`Authorization required for "${toolsAuth.authOpts?.appName}" access`);
-        if (-1 == toolsAuth.authOpts?.authType.indexOf('OAuth2') || !toolsAuth.authOpts?.auth_url) {
+        if (-1 == toolsAuth.authOpts?.authType.indexOf('OAuth2')) {
             $('#auth-api-type').prop('checked',true);
             $('#auth-api-key-inp').show();
+            $('#auth-idp-inp').hide();
         } else {
             $('#auth-api-type').prop('checked',false);
             $('#auth-api-key-inp').hide();
+            $('#auth-idp-inp').show();
+            $('#auth-idp').val(toolsAuth.authOpts?.appName);
         }
         $('#auth-modal').modal('show');
     } else if ('info' === kind) {

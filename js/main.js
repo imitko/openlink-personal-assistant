@@ -52,6 +52,7 @@ var availableFunctions = [];
 var vectorStores = null;
 var fileSearch = false;
 var toolsAuth = undefined;
+var IdPs = [];
 var vectorStoresCache = [];
 var fileIdsCache = [];
 var enableDebug = false; 
