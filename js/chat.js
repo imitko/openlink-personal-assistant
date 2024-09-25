@@ -179,7 +179,7 @@ async function loadConversation(thread_id) {
  */
 function createMessageHTML(text, role, message_id, assistant_id = null) {
     const assistant_name = getAssistantName(assistant_id);
-    const formattedText = md.render(text||''); // Convert markdown to HTML
+    const formattedText = role != 'user' ? md.render(text||'') : `<pre>${text}</pre>`; // Convert markdown to HTML
     const sender = assistant_name != null ? assistant_name : role;
     let cls = 'Function' === role ? 'funciton-debug' : '', hide = '';
     if ('Function' === role && !enableDebug) {
@@ -408,7 +408,7 @@ async function handleUserInput() {
     sendMessage(message_id, text); // Send the message
 
     // Display the user's message in the chat window
-    addMessageToUI(message_id, 'User', text); // Add user's message to UI
+    addMessageToUI(message_id, 'user', text); // Add user's message to UI
 
     // Add file
     selectedFiles.forEach(fileObj => {
