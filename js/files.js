@@ -288,7 +288,7 @@ async function updateVectorStore(vs_id, files) {
                 return r.json().then(e => {
                     throw new Error(`${e.error}: ${e.message}`);
                 }).catch(() => {
-                    throw new Error ('Update Vector Store failed:' + r.statusText);
+                    throw new Error ('Failed to create Vector Store:' + r.statusText);
                 });
             }
             return r.text();
