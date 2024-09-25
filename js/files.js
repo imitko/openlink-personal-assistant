@@ -256,7 +256,7 @@ async function createVectorStore(files) {
                 return r.json().then(e => {
                     throw new Error(`${e.error}: ${e.message}`);
                 }).catch(() => {
-                    throw new Error ('Create Vector Store failed:' + r.statusText);
+                    throw new Error ('Failed to create Vector Store:' + r.statusText);
                 });
             }
             return r.text();
