@@ -359,7 +359,7 @@ async function showVectorStoreFiles() {
 }
 
 /**
-* Resolve File names by id, look at cache and if not present fetch from backend
+* Resolve File names by ID, look at cache, and if not present, fetch from backend
 */
 async function resolveFiles(files) {
     let url = new URL('/chat/api/files', httpBase);
