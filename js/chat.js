@@ -375,7 +375,6 @@ function addFileToUI(message_id, name, role, dataUrl = null) {
  * Handles user input, sends it to the server, and updates the UI.
  */
 async function handleUserInput() {
-    $('.loader').show();// Show loader
     if (!checkApiKey()) return; // Check if API key is valid
 
     const $textarea = $('#user-input');
@@ -392,14 +391,12 @@ async function handleUserInput() {
 
     if (currentModel == undefined) {
         addMessageToUI(message_id, 'Assistant', "Cannot send message without model selected");
-        $('.loader').hide();
         // Show error if no model is selected
         return;
     }
 
     if (currentAssistant == undefined) {
         addMessageToUI(message_id, 'Assistant', "Cannot send message without assistant selected");
-        $('.loader').hide();
         // Show error if no assistant is selected
         return;
     }
@@ -1255,8 +1252,8 @@ function setFunctions(tools) {
                 const $functionItem = $(`
                     <div class="function-item">
                         <img src="svg/function.svg" alt="Function Icon" class="function-icon">
-                        <span>${funcName}</span>
                         <input type="checkbox" class="function-checkbox" id="${funcName}-checkbox" data-function-id="${funcName}" checked>
+                        <label for="${funcName}-checkbox">${funcName}</label>
                     </div>
                 `);
                 $functionsList.append($functionItem);
@@ -1534,9 +1531,9 @@ async function loadFunctions() {
                 const $functionItem = $(`
                     <div class="function-item">
                         <img src="svg/function.svg" alt="Function Icon" class="function-icon">
-                        <label for="fn-cb-${fn.name}">${fn.title}</label>
                         <input type="checkbox" id="fn-cb-${fn.name}" class="function-checkbox" 
                         data-function-id="${fn.name}" data-function-name="${fn.function}">
+                        <label for="fn-cb-${fn.name}">${fn.title}</label>
                     </div>
                 `);
                 $funcs.append($functionItem);
