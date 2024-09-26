@@ -609,29 +609,28 @@ function removeChatMessageFromUI(messageId) {
  * @param {Element} messageBody - The message body element.
  */
 function copyMessageToClipboard(messageBody) {
-    $('.loader').css('display', 'block'); // Show loader
     const range = document.createRange();
     range.selectNodeContents(messageBody);
     const selection = window.getSelection();
     selection.removeAllRanges();
     selection.addRange(range);
-
     try {
-        document.execCommand('copy'); // Copy to clipboard
-        selection.removeAllRanges();
+        if (navigator.clipboard && messageBody) {
+            // Use Clipboard API where is possible, the fallback is obsoleted call for old browsers
+            navigator.clipboard.writeText(messageBody.textContent);
+        } else {
+            document.execCommand('copy'); // Copy to clipboard
+        }
         showSuccessNotice('Text copied');
     } catch (err) {
         showFailureNotice('Failed to copy text: ', err); // Log error if copy fails
-    } finally {
-        $('.loader').css('display', 'none'); // Hide loader
-    }
+    } 
 }
 
 /**
  * Copies all chat messages currently displayed on the screen to the clipboard.
  */
 function copyAllMessagesToClipboard() {
-    $('.loader').css('display', 'block'); // Show loader
     const messages = $('.chat-message');
     let allMessagesText = '';
 
@@ -648,12 +647,15 @@ function copyAllMessagesToClipboard() {
 
     $tempTextArea.select();
     try {
-        document.execCommand('copy'); // Copy to clipboard
+        if (navigator.clipboard && allMessagesText) {
+            // Use Clipboard API where is possible, the fallback is obsoleted call for old browsers
+            navigator.clipboard.writeText(allMessagesText);
+        } else {
+            document.execCommand('copy'); // Copy to clipboard
+        }
         showSuccessNotice('All messages copied')
     } catch (err) {
         showFailureNotice('Failed to copy text: ', err); // Log error if copy fails
-    } finally {
-        $('.loader').css('display', 'none'); // Hide loader
     }
     $tempTextArea.remove(); // Remove temporary textarea
 }
