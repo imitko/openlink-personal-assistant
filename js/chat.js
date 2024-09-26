@@ -1439,8 +1439,17 @@ async function assistantUnpublish(assistantId) {
     url.search = params.toString();
     $('.loader').show();
     rc = await authClient.fetch(url.toString(), { method: 'POST', body: '{}' })
-        .then((r) => { return r.json()})
-        .then(() => { return true }).catch((e) => { return false });
+        .then((r) => { 
+            if (r.ok) {
+                return r.json();
+            } else {
+                throw new Error (r.statusText);
+            }
+        })
+        .then(() => { return true }).catch((e) => {
+            showFailureNotice(e.message)
+            return false;
+        });
     $('.loader').hide();
     return rc;
 }

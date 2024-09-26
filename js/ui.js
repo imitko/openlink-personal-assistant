@@ -42,11 +42,11 @@ function initUI() {
         const thisAssistant = assistants.find(item => item.id === currentAssistant);
         const published = thisAssistant?.metadata?.published === 'true';
         if(published && !$(this).is(':checked')) {
-            if (confirm("The assistant will be un-published, please confirm.")) {
-                let rc = await assistantUnpublish(currentAssistant);
-            } else {
-                $(this).prop('checked', true);
-            }
+            let rc = false;
+            if (rc = confirm("The assistant will be un-published, please confirm.")) {
+                rc = await assistantUnpublish(currentAssistant);
+            } 
+            $(this).prop('checked', !rc);
         }
     });
 
