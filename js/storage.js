@@ -201,8 +201,9 @@ async function exportSession(thread_id) {
 
         const location = uploadResponse.headers.get('location');
         const link = new URL(location, storageFolder);
-        
-        showSuccessNotice(`Successfully exported chat to: <a href="${link.toString()}" target="_blank">${link.toString()}</a>`);
+        $('#upload-location').attr('href', link.toString());
+        $('#upload-location').text(title);
+        $('#upload-status').modal('show');
     } catch (err) {
         showFailureNotice(err.message); // Show error notice
     } finally {
