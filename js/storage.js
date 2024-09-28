@@ -116,9 +116,16 @@ async function loadFromStorage(link) {
 
     $('#user-input-textbox').hide();
     $('.continue-button-group').show();
+    $('#continue-cancel-button').removeClass('d-none');
     $('.continue-button').off('click');
     $('.continue-button').click(function (e) {
         importSession();
+    });
+    $('#continue-cancel-button').off('click');
+    $('#continue-cancel-button').click(function (e) {
+        $('#user-input-textbox').show();
+        $('.continue-button-group').hide();
+        loadConversation(currentThread);
     });
     $('.loader').hide();
 }

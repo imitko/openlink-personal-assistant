@@ -158,6 +158,11 @@ async function loadConversation(thread_id) {
             showConversation(list); // Display conversation
             currentThread = thread_id; // Update current chat ID
             setAssistant (currentAssistant, false);
+            // If messages are loaded from storage and user click on a thread drop-down, now we show a thread and must show text input
+            if (!$('#user-input-textbox').is(':visible')) {
+                $('#user-input-textbox').show();
+                $('.continue-button-group').hide();
+            }
             $('.chat-messages').animate({ scrollTop: $('.chat-messages').prop('scrollHeight') }, 300); // Auto-scroll
         } else {
             showFailureNotice(`Conversation failed to load: ${resp.statusText}`); // Show error message
