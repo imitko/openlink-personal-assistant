@@ -49,6 +49,7 @@ function initAuthentication() {
         webSocket.onclose = onClose;
         $('#user-input-textbox').show();
         $('.reconnect-button-group').hide();
+        loadConversation(currentThread);
     });
 }
 

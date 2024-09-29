@@ -41,5 +41,6 @@ onClose = function(event) {
     showFailureNotice('Connection to the server closed.');
     $('.loader').hide(); // Hide the loader
     $('#user-input-textbox').hide(); // Hide the user input textbox
+    $('.continue-button-group').hide();
     $('.reconnect-button-group').show(); // Show the reconnect button group
 };
