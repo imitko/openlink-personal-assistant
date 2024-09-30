@@ -81,12 +81,16 @@ async function loadFromStorage(link) {
     })
     .then((res) => {
         let messages = res.messages;
+        let importData = [];
         let info = res.info;
         if (!messages && res.data) {
             messages = new Array();
             for (item of res.data) {
                 let role = item.role;
                 let assistant_id = item.assistant_id;
+                let prompt = undefined;
+                let images = [];
+                let files = [];
                 for (cont of item.content) {
                     let content = undefined;
                     let dataUrl = undefined;
@@ -94,10 +98,12 @@ async function loadFromStorage(link) {
                     switch (cont.type) {
                         case 'text':
                             content = cont.text.value;
+                            prompt = cont.text.value;
                             break;
                         case 'image_file':
                             role = 'image';
                             file_id = cont.image_file.file_id;
+                            images.push(file_id);
                             break;
                         case 'image_url':
                             role = 'image';
@@ -109,9 +115,15 @@ async function loadFromStorage(link) {
                     messages.push({ role: role, text: content, prompt_id: item.id, assistant_id: assistant_id,
                                   dataUrl: dataUrl, file_id: file_id });
                 }
+                for (const file of item.attachments) {
+                    if(!file.file_id) continue;
+                    files.push(file.file_id);
+                    messages.push({ role: 'file', text: '', prompt_id: item.id, name: file.file_id });
+                }
+                importData.push({ role: item.role, text: prompt, prompt_id: item.id, images: images, files: files, });
             }
         }
-        importedSession = { info: info ? info : null, messages: messages };
+        importedSession = { info: info ? info : null, messages: importData };
         showConversation(messages);
         $('.messages').scrollTop($('.messages').prop('scrollHeight'));
     })
@@ -247,11 +259,15 @@ function handleFileSelect(event) {
  */
 function processJsonData(jsonData) {
     let messages = [];
+    let importData = [];
     let info = jsonData.info;
 
     messages = new Array();
     for (const item of jsonData.data) {
         let role = item.role;
+        let prompt = undefined;
+        let images = [];
+        let files = [];
         for (const cont of item.content) {
             let content = undefined;
             let dataUrl = undefined;
@@ -259,10 +275,12 @@ function processJsonData(jsonData) {
             switch (cont.type) {
                 case 'text':
                     content = cont.text.value;
+                    prompt = cont.text.value;
                     break;
                 case 'image_file':
                     role = 'image';
                     file_id = cont.image_file.file_id;
+                    images.push(file_id);
                     break;
                 case 'image_url':
                     role = 'image';
@@ -273,8 +291,14 @@ function processJsonData(jsonData) {
             }
             messages.push({ role: role, text: content, prompt_id: item.id, dataUrl: dataUrl, file_id: file_id });
         }
+        for (const file of item.attachments) {
+            if(!file.file_id) continue;
+            files.push(file.file_id);
+            messages.push({ role: 'file', text: '', prompt_id: item.id, name: file.file_id });
+        }
+        importData.push({ role: item.role, text: prompt, prompt_id: item.id, images: images, files: files, });
     }
-    const importedSession = { info: info ? info : null, messages: messages };
+    const importedSession = { info: info ? info : null, messages: importData };
     showConversation(messages);
     importSession(importedSession);
     $('.messages').scrollTop($('.messages').prop('scrollHeight'));
