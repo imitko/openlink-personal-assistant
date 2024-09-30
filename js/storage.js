@@ -89,22 +89,25 @@ async function loadFromStorage(link) {
                 let assistant_id = item.assistant_id;
                 for (cont of item.content) {
                     let content = undefined;
+                    let dataUrl = undefined;
+                    let file_id = undefined;
                     switch (cont.type) {
                         case 'text':
                             content = cont.text.value;
                             break;
                         case 'image_file':
                             role = 'image';
-                            content = cont.image_file.file_id;
+                            file_id = cont.image_file.file_id;
                             break;
                         case 'image_url':
                             role = 'image';
-                            content = cont.image_url.url;
+                            dataUrl = cont.image_url.url;
                             break;
                         default:
                             content = '';
                     }
-                    messages.push({ role: role, text: content, prompt_id: item.id, assistant_id: assistant_id });
+                    messages.push({ role: role, text: content, prompt_id: item.id, assistant_id: assistant_id,
+                                  dataUrl: dataUrl, file_id: file_id });
                 }
             }
         }
@@ -251,22 +254,24 @@ function processJsonData(jsonData) {
         let role = item.role;
         for (const cont of item.content) {
             let content = undefined;
+            let dataUrl = undefined;
+            let file_id = undefined;
             switch (cont.type) {
                 case 'text':
                     content = cont.text.value;
                     break;
                 case 'image_file':
                     role = 'image';
-                    content = cont.image_file.file_id;
+                    file_id = cont.image_file.file_id;
                     break;
                 case 'image_url':
                     role = 'image';
-                    content = cont.image_url.url;
+                    dataUrl = cont.image_url.url;
                     break;
                 default:
                     content = '';
             }
-            messages.push({ role: role, text: content, prompt_id: item.id });
+            messages.push({ role: role, text: content, prompt_id: item.id, dataUrl: dataUrl, file_id: file_id });
         }
     }
     const importedSession = { info: info ? info : null, messages: messages };

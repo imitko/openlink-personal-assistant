@@ -269,6 +269,26 @@ function createFileHTML(message_id, name, role, dataUrl = null) {
     return $messageContainer;
 }
 
+async function resolveFileUrl(file_id) {
+    let url = new URL('/chat/api/files', httpBase);
+    let params = new URLSearchParams(url.search);
+    params.append('file_id', file_id);
+    params.append('apiKey', apiKey || '');
+    url.search = params.toString();
+    let file_url = await authClient.fetch(url.toString(), { method:'GET', headers: { 'Accept': 'application/json' } })
+    .then((res) => {
+        if (!res.ok) {
+            throw new Error(res.statusText);
+        }
+        return res.json();
+    }).then((res) => {
+        return res.url;
+    }).catch(() => {
+        return null;
+    });
+  return file_url;
+}
+
 /**
  * Displays a conversation from a list of message items.
  * 
@@ -311,8 +331,12 @@ async function showConversation(items) {
             let role = item.role;
             let message_id = item.id;
             let name = item.name;
-            let dataUrl = item.dataUrl
-            const $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
+            let dataUrl = item.dataUrl;
+            let file_id = item.file_id;
+            if (file_id && !dataUrl) {
+                dataUrl = await resolveFileUrl(file_id);
+            }
+            const $messageContainer = createFileHTML(message_id, name, role, dataUrl || 'svg/file-earmark-x.svg'); // Create message HTML
             $chatMessages.append($messageContainer); // Append message to chat
         }
 
