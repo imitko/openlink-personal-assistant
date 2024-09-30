@@ -118,7 +118,7 @@ async function loadFromStorage(link) {
                 for (const file of item.attachments) {
                     if(!file.file_id) continue;
                     files.push(file.file_id);
-                    messages.push({ role: 'file', text: '', prompt_id: item.id, name: file.file_id });
+                    messages.push({ role: 'file', text: '', prompt_id: item.id, name: file.file_id, file_id: file.file_id });
                 }
                 importData.push({ role: item.role, text: prompt, prompt_id: item.id, images: images, files: files, });
             }
@@ -294,7 +294,7 @@ function processJsonData(jsonData) {
         for (const file of item.attachments) {
             if(!file.file_id) continue;
             files.push(file.file_id);
-            messages.push({ role: 'file', text: '', prompt_id: item.id, name: file.file_id });
+            messages.push({ role: 'file', text: '', prompt_id: item.id, name: file.file_id, file_id: file.file_id });
         }
         importData.push({ role: item.role, text: prompt, prompt_id: item.id, images: images, files: files, });
     }

@@ -270,23 +270,31 @@ function createFileHTML(message_id, name, role, dataUrl = null) {
 }
 
 async function resolveFileUrl(file_id) {
+  const obj = await resolveFileObject(file_id);
+  return obj.url;
+}
+
+async function resolveFileName(file_id) {
+  const obj = await resolveFileObject(file_id);
+  return obj.filename;
+}
+
+async function resolveFileObject(file_id) {
     let url = new URL('/chat/api/files', httpBase);
     let params = new URLSearchParams(url.search);
     params.append('file_id', file_id);
     params.append('apiKey', apiKey || '');
     url.search = params.toString();
-    let file_url = await authClient.fetch(url.toString(), { method:'GET', headers: { 'Accept': 'application/json' } })
+    let obj = await authClient.fetch(url.toString(), { method:'GET', headers: { 'Accept': 'application/json' } })
     .then((res) => {
         if (!res.ok) {
             throw new Error(res.statusText);
         }
         return res.json();
-    }).then((res) => {
-        return res.url;
     }).catch(() => {
         return null;
     });
-  return file_url;
+  return obj;
 }
 
 /**
@@ -323,6 +331,11 @@ async function showConversation(items) {
             let message_id = item.id;
             let name = item.name;
             let dataUrl = item.dataUrl
+            if (item.file_id) {
+                const obj = await resolveFileObject(item.file_id);
+                dataUrl = obj.url || dataUrl;
+                name = obj.filename || name;
+            }
             const $messageContainer = createFileHTML(message_id, name, role, dataUrl); // Create message HTML
             $chatMessages.append($messageContainer); // Append message to chat
         }
