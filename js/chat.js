@@ -1576,7 +1576,7 @@ async function loadFunctions() {
         let params = new URLSearchParams(url.search);
         params.append('asst', 1);
         url.search = params.toString();
-        const resp = await fetch (url.toString());
+        const resp = await authClient.fetch (url.toString());
         if (resp.status === 200) {
             availableFunctions = await resp.json();
             let $funcs = $('#function-input');
