@@ -183,8 +183,10 @@ async function loadConversation(thread_id) {
  * @returns {jQuery} - The jQuery object containing the constructed message HTML.
  */
 function createMessageHTML(text, role, message_id, assistant_id = null) {
+    const codeBlockPattern = /^(?:\s*(?:(?!`).)*?)```([\s\S]*?)```/gm;
     const assistant_name = getAssistantName(assistant_id);
-    const formattedText = role != 'user' ? md.render(text||'') : `<pre>${text}</pre>`; // Convert markdown to HTML
+    const formattedText = role != 'user' || codeBlockPattern.test(text) ? 
+        md.render(text||'') : `<pre>${text}</pre>`; // Convert markdown to HTML
     const sender = assistant_name != null ? assistant_name : role;
     let cls = 'Function' === role ? 'funciton-debug' : '', hide = '';
     if ('Function' === role && !enableDebug) {
