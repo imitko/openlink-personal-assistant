@@ -188,7 +188,7 @@ function createMessageHTML(text, role, message_id, assistant_id = null) {
     const formattedText = role != 'user' || codeBlockPattern.test(text) ? 
         md.render(text||'') : `<pre>${text}</pre>`; // Convert markdown to HTML
     const sender = assistant_name != null ? assistant_name : role;
-    let cls = 'Function' === role ? 'funciton-debug' : '', hide = '';
+    let cls = 'Function' === role ? 'funciton-debug' : '', hide = '', anon = loggedIn ? '' : 'd-none';
     if ('Function' === role && !enableDebug) {
         hide = 'd-none';
     }
@@ -200,9 +200,9 @@ function createMessageHTML(text, role, message_id, assistant_id = null) {
     const $messageHeader = $('<div>', { class: 'message-header' })
         .append($('<p>', { class: `message-sender ${role}`, text: sender.replace(/^\w/, c => c.toUpperCase()) }))
         .append($('<div>', { class: 'message-icons' })
-            .append($('<img>', { src: 'svg/link-2.svg', alt: 'Permalink', class: `message-permalink icon ${hide}` }))
+            .append($('<img>', { src: 'svg/link-2.svg', alt: 'Permalink', class: `message-permalink icon ${hide} ${anon}` }))
             .append($('<img>', { src: 'svg/clipboard.svg', alt: 'Copy', class: 'message-copy icon' }))
-            .append($('<img>', { src: 'svg/trash.svg', alt: 'Delete', class: `message-delete icon ${hide}` }))
+            .append($('<img>', { src: 'svg/trash.svg', alt: 'Delete', class: `message-delete icon ${hide} ${anon}` }))
         );
 
     // Create message body
