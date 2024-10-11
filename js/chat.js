@@ -1340,7 +1340,7 @@ function setFunctions(tools) {
             $functionsList.append($functionItem);
         }
         if (!allFunctionsAvailable) {
-            showFailureNotice('Not all funciton tools are available for current assistant.');
+            showFailureNotice('Some function tools are not available to the current assistant.');
         }
     } else {
         const $functionItem = $(`
