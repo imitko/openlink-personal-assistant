@@ -250,6 +250,7 @@ function initAuthDialog() {
             function_name: toolsAuth.function_name,
             authTokenType: 'Bearer',
             authToken: key,
+            apiKey: apiKey||'',
         };
         webSocket.send(JSON.stringify(request));
         toolsAuth = undefined;
@@ -264,6 +265,7 @@ function initAuthDialog() {
                 action: 'cancel',
                 run_id: toolsAuth.run_id,
                 thread_id: toolsAuth.thread_id,
+                apiKey: apiKey||'',
             };
             webSocket.send(JSON.stringify(request));
             toolsAuth = undefined;
