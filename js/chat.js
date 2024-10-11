@@ -1285,6 +1285,7 @@ function setParameters(item) {
  * @param {Array} tools - The list of tools to set.
  */
 function setFunctions(tools) {
+    let allFunctionsAvailable = true;
     const $functionsList = $('.functions-list');
     const $allFunctions = $('#function-input .function-item');
     $functionsList.empty();
@@ -1304,6 +1305,9 @@ function setFunctions(tools) {
                 `);
                 $functionsList.append($functionItem);
                 enabledFunctions.push(funcName);
+                if (!availableFunctions.find(f => f.name === funcName)) {
+                    allFunctionsAvailable = false;
+                }
                 
                 const $checkbox = $functionItem.find('.function-checkbox');
                 const $allFunctionsCb = $allFunctions.find(`#fn-cb-${funcName}`);
@@ -1334,6 +1338,9 @@ function setFunctions(tools) {
                     <span>No Functions Available</span>
                 </div>`);
             $functionsList.append($functionItem);
+        }
+        if (!allFunctionsAvailable) {
+            showFailureNotice('Not all funciton tools are available for current assistant.');
         }
     } else {
         const $functionItem = $(`
