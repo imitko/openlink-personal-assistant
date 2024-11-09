@@ -7,6 +7,7 @@ async function fetchProfile(url) {
     const options = { 
         method: 'GET', 
         headers: { 'Accept': 'text/turtle, application/ld+json;q=0.9, application/rdf+xml;q=0.2, */*;q=0.1' }, 
+        cache: 'reload',
         mode: 'cors', 
         crossDomain: true 
     };
