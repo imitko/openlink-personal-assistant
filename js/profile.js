@@ -53,9 +53,10 @@ async function loadProfile(webId) {
             const storage_link = doc.querySelector(`*[itemid="${webId}"] > link[itemprop="http://www.w3.org/ns/pim/space#storage"]`);
             const inbox_link = doc.querySelector(`*[itemid="${webId}"] > link[itemprop="http://www.w3.org/ns/pim/space#inbox"]`);
             const name_meta = doc.querySelector(`*[itemid="${webId}"] > meta[itemprop="http://schema.org/name"]`);
+            let posh_storage_link = doc.querySelector('head > link[rel="http://www.w3.org/ns/pim/space#storage"]');
 
             // Determine storage URL from selected links
-            const storage_url = storage_link ? storage_link.href : inbox_link ? inbox_link.href : null;
+            const storage_url = storage_link?.href || inbox_link?.href || posh_storage_link?.href;
 
             if (storage_url) { // If storage URL exists
                 const isDav = await isDavSupported(storage_url); // Check if WebDAV is supported
