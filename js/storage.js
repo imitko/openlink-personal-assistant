@@ -212,7 +212,7 @@ async function exportSession(thread_id) {
         
         const body = await response.json(); // Parse response JSON
         const title = body?.info?.title ? body.info.title : thread_id;
-        const file_name = title.replace(/[\s\/\\.]/g, '_') + '.json';
+        const file_name = title.replace(/[\s\/\\.&?#]/g, '_') + '.json';
         const uploadUrl = new URL(encodeURIComponent(file_name), storageFolder);
         const options = { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body, null, 2) };
 
