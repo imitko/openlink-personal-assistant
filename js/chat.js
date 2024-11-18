@@ -185,8 +185,8 @@ async function loadConversation(thread_id) {
 function createMessageHTML(text, role, message_id, assistant_id = null) {
     const codeBlockPattern = /^(?:\s*(?:(?!`).)*?)```([\s\S]*?)```/gm;
     const assistant_name = getAssistantName(assistant_id);
-    const formattedText = role != 'user' || codeBlockPattern.test(text) ? 
-        md.render(text||'') : `<pre>${text}</pre>`; // Convert markdown to HTML
+    const formatted = role != 'user' || codeBlockPattern.test(text);
+    const formattedText = formatted ?  md.render(text||'') : text; // Convert markdown to HTML
     const sender = assistant_name != null ? assistant_name : role;
     let cls = 'Function' === role ? 'funciton-debug' : '', hide = '', anon = loggedIn ? '' : 'd-none';
     if ('Function' === role && !enableDebug) {
@@ -206,7 +206,12 @@ function createMessageHTML(text, role, message_id, assistant_id = null) {
         );
 
     // Create message body
-    const $messageBody = $('<div>', { class: `message-body ${role}` }).html(formattedText); // Use html() to insert formatted text
+    let $messageBody = $('<div>', { class: `message-body ${role}` });
+    if (formatted) {
+        $messageBody.html(formattedText); // Use html() to insert formatted text
+    } else {
+        $messageBody.text(formattedText);
+    }
 
     $messageBody.find('a').attr({
         target: '_blank',
