@@ -581,11 +581,13 @@ function readMessage(input) {
     } else if ('message_id' === kind) {
         $('#'+obj.prompt_id).attr('id', obj.message_id); // set user prompt id
     } else if (text === '[DONE]' || text === '[LENGTH]') {
-        // End of the message
-        runStarted(false);
+        // End of the message, keep run_id for error on thread active yet
+        if (kind != 'error') {
+            runStarted(false);
+            currentRunId = undefined;
+        }
         accumulatedMessage = ''; // Reset the accumulated message
         receivingMessage = null;
-        currentRunId = undefined;
         $('.loader').css('display', 'none'); // Hide loader
         return;
     } else {
