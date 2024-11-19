@@ -11,7 +11,7 @@ function initAuthentication() {
     }
 
     if (null != sharedSession) {
-        loadShare(sharedSession);
+        loadAssistants(null,0).then(() => loadShare(sharedSession));
         $('#user-input-textbox').hide();
         $('.continue-button-group').show();
     } else {

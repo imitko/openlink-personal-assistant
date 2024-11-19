@@ -1129,15 +1129,16 @@ async function getVectorStore(id) {
  * 
  * @param {string} assistant_id - The ID of the assistant to set active.
  */
-async function loadAssistants(assistant_id = null) {
-    if (!loggedIn) return; // Exit if not logged in
-    if (!checkApiKey()) return; // Check if API key is valid
+async function loadAssistants(assistant_id = null, detail = 1) {
+    if (detail && (!loggedIn || !checkApiKey())) return; // Exit if not logged in or  API key is not valid
     $('.loader').css('display', 'block'); // Show loader
 
     try {
         // Construct URL with query parameters
         const url = new URL('/chat/api/assistants', httpBase);
-        url.search = new URLSearchParams({ detail: 1, apiKey: apiKey ? apiKey : '', limit: 100 }).toString();
+        if (detail) {
+            url.search = new URLSearchParams({ detail: detail, apiKey: apiKey ? apiKey : '', limit: 100 }).toString();
+        }
 
         const resp = await authClient.fetch(url.toString()); // Fetch chat list
 
