@@ -1130,7 +1130,7 @@ async function getVectorStore(id) {
  * @param {string} assistant_id - The ID of the assistant to set active.
  */
 async function loadAssistants(assistant_id = null, detail = 1) {
-    if (detail && (!loggedIn || !checkApiKey())) return; // Exit if not logged in or  API key is not valid
+    if (detail && (!loggedIn || !checkApiKey())) return; // Exit if not logged in or API key is not valid
     $('.loader').css('display', 'block'); // Show loader
 
     try {
