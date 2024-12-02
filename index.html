@@ -159,6 +159,17 @@
                         <div class="field">
                             <input type="range" class="form-range" id="max_threads_in" min="20" step="10" max="100" value="100">
                         </div> 
+
+                        <div class="field" id="max-messages-field">
+                            <label for="max_messages_in" data-toggle="tooltip" data-bs-placement="top" class="field-label" 
+                                title="Maximum number of message entries visible in log list.">
+                                Max Messages
+                            </label>
+                            <input type="text" id="max_messages" class="form-control params" value="10000">
+                        </div>
+                        <div class="field">
+                            <input type="range" class="form-range" id="max_messages_in" min="20" step="10" max="10000" value="10000">
+                        </div> 
                     </div>
 
                     <div class="session-configuration">

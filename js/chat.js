@@ -147,6 +147,7 @@ async function loadConversation(thread_id) {
     let url = new URL('/chat/api/messages', httpBase);
     let params = new URLSearchParams(url.search);
     params.append('thread_id', thread_id);
+    params.append('limit', max_messages);
     params.append('apiKey', apiKey ? apiKey : '');
     url.search = params.toString();
 
@@ -1274,6 +1275,7 @@ async function setAssistant(assistant_id, initFunctionsList = true) {
 function setParameters(item) {
     if (item.max_tokens) max_tokens = item.max_tokens;
     if (item.max_threads) max_threads = item.max_threads;
+    if (item.max_messages) max_messages = item.max_messages;
     if (item.temperature) temperature = item.temperature;
     if (item.top_p) top_p = item.top_p;
 
@@ -1285,6 +1287,8 @@ function setParameters(item) {
     $('#max_tokens_in').val(max_tokens);
     $('#max_threads').val(max_threads);
     $('#max_threads_in').val(max_threads);
+    $('#max_messages').val(max_messages);
+    $('#max_messages_in').val(max_messages);
 }
 
 /**
@@ -1383,12 +1387,16 @@ function clearAssistant() {
     top_p = 0.5;
     max_tokens = 4096;
     max_threads = 500;
+    max_messages = 10000;
 
     $('#max_tokens').val(max_tokens);
     $('#max_tokens_in').val(max_tokens);
     
     $('#max_threads').val(max_threads);
     $('#max_threads_in').val(max_threads);
+
+    $('#max_messages').val(max_messages);
+    $('#max_messages_in').val(max_messages);
 
     $('#top_p').val(top_p);
     $('#top_p_in').val(top_p);
